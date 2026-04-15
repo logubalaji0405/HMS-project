@@ -51,7 +51,7 @@ WSGI_APPLICATION = 'hospital_project.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.parse(
-        os.environ.get("DATABASE_URL", "postgresql://postgres:password@localhost:5432/hospital_db"),
+       print("DATABASE_URL:", os.environ.get("DATABASE_URL")),
         conn_max_age=600,
         ssl_require=True
     )

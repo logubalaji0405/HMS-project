@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4 fw-bold text-primary">Admin Dashboard</h2>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card-stat">
+                <h3>{{ total_patients }}</h3>
+                <p>Total Patients</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card-stat">
+                <h3>{{ total_doctors }}</h3>
+                <p>Total Doctors</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card-stat">
+                <h3>{{ total_appointments }}</h3>
+                <p>Total Appointments</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="box mb-4">
+        <h4 class="mb-3">Doctor Approval</h4>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Doctor Name</th>
+                        <th>Username</th>
+                        <th>Department</th>
+                        <th>Approve</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doctor in pending_doctors %}
+                    <tr>
+                        <td>{{ doctor.user.first_name|default:doctor.user.username }}</td>
+                        <td>{{ doctor.user.username }}</td>
+                        <td>{{ doctor.department }}</td>
+                        <td>
+                            <a href="{% url 'approve_doctor' doctor.id %}" class="btn btn-success btn-sm">
+                                Approve
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No pending doctor approvals</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="box">
+        <h4 class="mb-3">Day by Day Appointment Track</h4>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Date</th>
+                        <th>Total Appointments</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in daily_stats %}
+                    <tr>
+                        <td>{{ item.appointment_date }}</td>
+                        <td>{{ item.total }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2">No daily tracking data</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

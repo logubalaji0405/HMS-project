@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-7">
+            <div class="login-card">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold text-primary">Login</h2>
+                    <p class="text-muted mb-0">Access your Healix HMS account</p>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Username</label>
+                        <input type="text" name="username" class="form-control custom-input" placeholder="Enter username" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Password</label>
+                        <input type="password" name="password" class="form-control custom-input" placeholder="Enter password" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 login-btn mt-3">
+                        Login
+                    </button>
+
+                    <p class="text-center mt-4 mb-0 text-muted">
+                        Don't have an account?
+                        <a href="{% url 'register' %}" class="fw-semibold text-decoration-none">Register</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .login-card {
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 10px 35px rgba(13, 110, 253, 0.12);
+        padding: 40px 32px;
+        border: 1px solid #e9f2ff;
+    }
+
+    .custom-input {
+        height: 50px;
+        border-radius: 14px;
+        border: 1px solid #d8e6ff;
+        padding: 10px 14px;
+        box-shadow: none;
+    }
+
+    .custom-input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.15);
+    }
+
+    .login-btn {
+        height: 52px;
+        border-radius: 14px;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .login-card {
+            padding: 28px 18px;
+        }
+    }
+</style>
+{% endblock %}

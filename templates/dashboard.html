@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard | Healix HMS{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="mb-4">
+        <h1 class="fw-bold text-primary">Dashboard</h1>
+        <p>Welcome, {{ user.first_name|default:user.username }}.</p>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card-box h-100">
+                <h4>My Profile</h4>
+                <p>View your account details and hospital user information.</p>
+                <a href="{% url 'profile' %}" class="btn btn-main">Open Profile</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card-box h-100">
+                <h4>Book Appointment</h4>
+                <p>Create a new appointment request using the booking page.</p>
+                <a href="{% url 'book' %}" class="btn btn-main">Book Now</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card-box h-100">
+                <h4>Logout</h4>
+                <p>Sign out safely from your hospital management account.</p>
+                <a href="{% url 'logout' %}" class="btn btn-main">Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-box">
+        <h3 class="mb-4">My Appointments</h3>
+
+        {% if appointments %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Patient</th>
+                            <th>Department</th>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Problem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appt in appointments %}
+                        <tr>
+                            <td>{{ appt.patient_name }}</td>
+                            <td>{{ appt.department }}</td>
+                            <td>{{ appt.doctor_name }}</td>
+                            <td>{{ appt.appointment_date }}</td>
+                            <td>{{ appt.appointment_time }}</td>
+                            <td>{{ appt.problem }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>No appointments yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

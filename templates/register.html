@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="register-card">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold text-primary">Create Account</h2>
+                    <p class="text-muted mb-0">Join Healix Hospital Management System</p>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Full Name</label>
+                            <input
+                                type="text"
+                                name="first_name"
+                                class="form-control custom-input"
+                                placeholder="Enter your full name"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Username</label>
+                            <input
+                                type="text"
+                                name="username"
+                                class="form-control custom-input"
+                                placeholder="Choose username"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input
+                                type="email"
+                                name="email"
+                                class="form-control custom-input"
+                                placeholder="Enter your email"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Phone</label>
+                            <input
+                                type="text"
+                                name="phone"
+                                class="form-control custom-input"
+                                placeholder="Enter phone number"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="form-label fw-semibold d-block mb-3">Select Role</label>
+
+                        <div class="role-grid">
+                            <label class="role-card active-role" id="patientCard">
+                                <input type="radio" name="role" value="patient" checked hidden>
+                                <div class="role-icon">🧑</div>
+                                <h5 class="mb-1">Patient</h5>
+                                <p class="mb-0 small text-muted">Book appointments and view history</p>
+                            </label>
+
+                            <label class="role-card" id="doctorCard">
+                                <input type="radio" name="role" value="doctor" hidden>
+                                <div class="role-icon">👨‍⚕️</div>
+                                <h5 class="mb-1">Doctor</h5>
+                                <p class="mb-0 small text-muted">Manage patient bookings and confirm visits</p>
+                            </label>
+
+                            <label class="role-card" id="adminCard">
+                                <input type="radio" name="role" value="admin" hidden>
+                                <div class="role-icon">🛡️</div>
+                                <h5 class="mb-1">Admin</h5>
+                                <p class="mb-0 small text-muted">Track doctors, patients, and hospital data</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mt-4" id="departmentField" style="display: none;">
+                        <label class="form-label fw-semibold">Department</label>
+                        <input
+                            type="text"
+                            name="department"
+                            class="form-control custom-input"
+                            placeholder="Example: Cardiology / Neurology / Orthopedics"
+                        >
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Password</label>
+                            <input
+                                type="password"
+                                name="password1"
+                                class="form-control custom-input"
+                                placeholder="Enter password"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Confirm Password</label>
+                            <input
+                                type="password"
+                                name="password2"
+                                class="form-control custom-input"
+                                placeholder="Confirm password"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 register-btn mt-4">
+                        Create Account
+                    </button>
+
+                    <p class="text-center mt-4 mb-0 text-muted">
+                        Already have an account?
+                        <a href="{% url 'login' %}" class="fw-semibold text-decoration-none">Login</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .register-card {
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 10px 35px rgba(13, 110, 253, 0.12);
+        padding: 40px 32px;
+        border: 1px solid #e9f2ff;
+    }
+
+    .custom-input {
+        height: 50px;
+        border-radius: 14px;
+        border: 1px solid #d8e6ff;
+        padding: 10px 14px;
+        box-shadow: none;
+    }
+
+    .custom-input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.15);
+    }
+
+    .role-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    .role-card {
+        background: #f8fbff;
+        border: 2px solid #e3efff;
+        border-radius: 18px;
+        padding: 20px 16px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-height: 155px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .role-card:hover {
+        transform: translateY(-4px);
+        border-color: #9cc2ff;
+        box-shadow: 0 8px 20px rgba(13, 110, 253, 0.10);
+    }
+
+    .active-role {
+        background: linear-gradient(180deg, #eef5ff, #f8fbff);
+        border-color: #0d6efd;
+        box-shadow: 0 10px 22px rgba(13, 110, 253, 0.14);
+    }
+
+    .role-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .register-btn {
+        height: 52px;
+        border-radius: 14px;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .register-card {
+            padding: 28px 18px;
+        }
+
+        .role-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    const patientCard = document.getElementById("patientCard");
+    const doctorCard = document.getElementById("doctorCard");
+    const adminCard = document.getElementById("adminCard");
+    const departmentField = document.getElementById("departmentField");
+
+    const roleCards = [patientCard, doctorCard, adminCard];
+
+    function clearActiveRoles() {
+        roleCards.forEach(card => card.classList.remove("active-role"));
+    }
+
+    function setRole(card, roleValue) {
+        clearActiveRoles();
+        card.classList.add("active-role");
+        card.querySelector('input[type="radio"]').checked = true;
+
+        if (roleValue === "doctor") {
+            departmentField.style.display = "block";
+        } else {
+            departmentField.style.display = "none";
+        }
+    }
+
+    patientCard.addEventListener("click", function () {
+        setRole(patientCard, "patient");
+    });
+
+    doctorCard.addEventListener("click", function () {
+        setRole(doctorCard, "doctor");
+    });
+
+    adminCard.addEventListener("click", function () {
+        setRole(adminCard, "admin");
+    });
+</script>
+{% endblock %}

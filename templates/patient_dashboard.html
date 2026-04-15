@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Patient Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">Patient Dashboard</h2>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card-stat">
+                <h3>{{ total_doctors }}</h3>
+                <p>Total Doctors</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-stat">
+                <h3>{{ my_bookings }}</h3>
+                <p>My Bookings</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-stat">
+                <a href="{% url 'book_appointment' %}" class="btn btn-primary mt-3">Book Appointment</a>
+                <a href="{% url 'booking_history' %}" class="btn btn-outline-primary mt-3">Booking History</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="box mb-4">
+        <h4>Upcoming / Recent Appointments</h4>
+        <table class="table mt-3">
+            <thead>
+                <tr>
+                    <th>Doctor</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                    <th>Chat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in upcoming %}
+                <tr>
+                    <td>{{ item.doctor.first_name|default:item.doctor.username }}</td>
+                    <td>{{ item.appointment_date }}</td>
+                    <td>{{ item.appointment_time }}</td>
+                    <td>{{ item.status }}</td>
+                    <td>
+                        <a href="{% url 'chat' item.doctor.id %}" class="btn btn-sm btn-success">Chat</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">No appointments yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="box">
+        <h4>Booking History</h4>
+        <table class="table mt-3">
+            <thead>
+                <tr>
+                    <th>Doctor</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Problem</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in history %}
+                <tr>
+                    <td>{{ item.doctor.first_name|default:item.doctor.username }}</td>
+                    <td>{{ item.appointment_date }}</td>
+                    <td>{{ item.appointment_time }}</td>
+                    <td>{{ item.problem }}</td>
+                    <td>{{ item.status }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">No history available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

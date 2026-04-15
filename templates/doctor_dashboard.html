@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Doctor Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">Doctor Dashboard</h2>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card-stat">
+                <h3>{{ total_bookings }}</h3>
+                <p>Total Bookings</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-stat">
+                <h3>{{ pending_bookings }}</h3>
+                <p>Pending Bookings</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-stat">
+                <h3>{{ confirmed_bookings }}</h3>
+                <p>Confirmed Bookings</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="box">
+        <h4>Patient Appointments</h4>
+        <table class="table mt-3">
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Problem</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                    <th>Chat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in appointments %}
+                <tr>
+                    <td>{{ item.patient.first_name|default:item.patient.username }}</td>
+                    <td>{{ item.appointment_date }}</td>
+                    <td>{{ item.appointment_time }}</td>
+                    <td>{{ item.problem }}</td>
+                    <td>{{ item.status }}</td>
+                    <td>
+                        {% if item.status == 'pending' %}
+                            <a href="{% url 'confirm_booking' item.id %}" class="btn btn-sm btn-success">Confirm</a>
+                            <a href="{% url 'reject_booking' item.id %}" class="btn btn-sm btn-danger">Reject</a>
+                        {% else %}
+                            <span class="text-muted">Updated</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'chat' item.patient.id %}" class="btn btn-sm btn-primary">Chat</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">No bookings available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

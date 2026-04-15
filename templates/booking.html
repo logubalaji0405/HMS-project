@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Book Appointment{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="box">
+                <h2 class="mb-4 text-center">Book Appointment</h2>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label>Select Doctor</label>
+                        <select name="doctor" class="form-select" required>
+                            <option value="">Choose Doctor</option>
+                            {% for doc in doctors %}
+                                <option value="{{ doc.user.id }}">
+                                    {{ doc.user.first_name|default:doc.user.username }} - {{ doc.department }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Appointment Date</label>
+                        <input type="date" name="appointment_date" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Appointment Time</label>
+                        <input type="time" name="appointment_time" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Problem</label>
+                        <textarea name="problem" class="form-control" rows="4" required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Book Now</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

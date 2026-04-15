@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Book Appointment | Healix HMS{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card-box">
+                <h2 class="text-center mb-4">Book Appointment</h2>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Patient Name</label>
+                            <input type="text" name="patient_name" class="form-control" value="{{ user.first_name|default:user.username }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Department</label>
+                            <select name="department" class="form-select" required>
+                                <option value="">Select Department</option>
+                                <option>General Medicine</option>
+                                <option>Cardiology</option>
+                                <option>Neurology</option>
+                                <option>Orthopedics</option>
+                                <option>Pediatrics</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Doctor Name</label>
+                            <input type="text" name="doctor_name" class="form-control" placeholder="Enter doctor name" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Date</label>
+                            <input type="date" name="appointment_date" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Time</label>
+                            <input type="time" name="appointment_time" class="form-control" required>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Symptoms / Problem</label>
+                            <textarea name="problem" class="form-control" rows="4" placeholder="Enter patient problem" required></textarea>
+                        </div>
+
+                        <div class="col-12 text-center mt-3">
+                            <button type="submit" class="btn btn-primary px-5">Submit</button>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

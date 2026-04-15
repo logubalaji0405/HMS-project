@@ -1,0 +1,436 @@
+{% extends 'base.html' %}
+{% block title %}Home | Healix HMS{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <div class="hero-text">
+                    <span class="hero-badge">Modern Hospital Management Platform</span>
+                    <h1>Smart Healthcare Management For Patients, Doctors, and Admin</h1>
+                    <p>
+                        Healix HMS helps manage appointments, patient records, doctor approvals,
+                        booking history, and hospital workflow in one clean system.
+                    </p>
+
+                    <div class="hero-buttons">
+                        {% if user.is_authenticated %}
+                            {% if user.profile.role == 'patient' %}
+                                <a href="{% url 'patient_dashboard' %}" class="btn btn-primary btn-lg">Open Patient Dashboard</a>
+                                <a href="{% url 'book_appointment' %}" class="btn btn-outline-light btn-lg">Book Appointment</a>
+                            {% elif user.profile.role == 'doctor' %}
+                                <a href="{% url 'doctor_dashboard' %}" class="btn btn-primary btn-lg">Open Doctor Dashboard</a>
+                            {% elif user.profile.role == 'admin' %}
+                                <a href="{% url 'admin_dashboard' %}" class="btn btn-primary btn-lg">Open Admin Dashboard</a>
+                            {% else %}
+                                <a href="{% url 'login' %}" class="btn btn-primary btn-lg">Login</a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'login' %}" class="btn btn-primary btn-lg">Login Now</a>
+                            <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg">Create Account</a>
+                        {% endif %}
+                    </div>
+
+                    <div class="hero-mini-stats">
+                        <div class="mini-stat">
+                            <h4>24/7</h4>
+                            <p>Support</p>
+                        </div>
+                        <div class="mini-stat">
+                            <h4>100+</h4>
+                            <p>Doctors</p>
+                        </div>
+                        <div class="mini-stat">
+                            <h4>5K+</h4>
+                            <p>Patients</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="hero-card-wrap">
+                    <div class="hero-main-card">
+                        <h3>Hospital Services</h3>
+                        <div class="hero-service-list">
+                            <div class="hero-service-item">
+                                <span>📅</span>
+                                <div>
+                                    <h6>Appointment Booking</h6>
+                                    <p>Easy doctor booking and patient scheduling.</p>
+                                </div>
+                            </div>
+
+                            <div class="hero-service-item">
+                                <span>🩺</span>
+                                <div>
+                                    <h6>Doctor Panel</h6>
+                                    <p>Confirm appointments and manage patients quickly.</p>
+                                </div>
+                            </div>
+
+                            <div class="hero-service-item">
+                                <span>📁</span>
+                                <div>
+                                    <h6>Patient Records</h6>
+                                    <p>Maintain history, bookings, and treatment details.</p>
+                                </div>
+                            </div>
+
+                            <div class="hero-service-item">
+                                <span>💬</span>
+                                <div>
+                                    <h6>Doctor Chat</h6>
+                                    <p>Connect patients and doctors inside one system.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="floating-card floating-one">
+                        <strong>98%</strong>
+                        <span>Patient Satisfaction</span>
+                    </div>
+
+                    <div class="floating-card floating-two">
+                        <strong>150+</strong>
+                        <span>Daily Bookings</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="features-section py-5">
+    <div class="container">
+        <div class="section-head text-center mb-5">
+            <h2>Why Choose Healix HMS</h2>
+            <p>Professional hospital workflow with a modern dashboard experience</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <div class="feature-icon">👤</div>
+                    <h4>Patient Module</h4>
+                    <p>Patients can register, login, book appointments, check booking history, and chat with doctors.</p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <div class="feature-icon">👨‍⚕️</div>
+                    <h4>Doctor Module</h4>
+                    <p>Doctors can track patient bookings, confirm appointments, and manage visit requests easily.</p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <div class="feature-icon">🛡️</div>
+                    <h4>Admin Module</h4>
+                    <p>Admin can approve doctors, track hospital activity, and monitor day-by-day appointment reports.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="stats-section pb-5">
+    <div class="container">
+        <div class="stats-wrapper">
+            <div class="row g-4 text-center">
+                <div class="col-md-3 col-6">
+                    <div class="stat-box">
+                        <h3>5000+</h3>
+                        <p>Registered Patients</p>
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-6">
+                    <div class="stat-box">
+                        <h3>120+</h3>
+                        <p>Expert Doctors</p>
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-6">
+                    <div class="stat-box">
+                        <h3>45+</h3>
+                        <p>Departments</p>
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-6">
+                    <div class="stat-box">
+                        <h3>24/7</h3>
+                        <p>Emergency Service</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .hero-section{
+        background:
+            linear-gradient(135deg, rgba(13,110,253,0.88), rgba(11,87,208,0.88)),
+            url('https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=1400&q=80');
+        background-size: cover;
+        background-position: center;
+        min-height: 92vh;
+        display: flex;
+        align-items: center;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-text h1{
+        font-size: 3rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin: 18px 0;
+    }
+
+    .hero-text p{
+        font-size: 1.05rem;
+        line-height: 1.8;
+        max-width: 560px;
+        color: rgba(255,255,255,0.92);
+    }
+
+    .hero-badge{
+        display: inline-block;
+        background: rgba(255,255,255,0.14);
+        border: 1px solid rgba(255,255,255,0.25);
+        padding: 8px 16px;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .hero-buttons{
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 28px;
+    }
+
+    .hero-buttons .btn{
+        border-radius: 14px;
+        padding: 12px 24px;
+        font-weight: 700;
+    }
+
+    .hero-mini-stats{
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        margin-top: 34px;
+    }
+
+    .mini-stat{
+        min-width: 110px;
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 18px;
+        padding: 14px 18px;
+        text-align: center;
+        backdrop-filter: blur(6px);
+    }
+
+    .mini-stat h4{
+        margin: 0;
+        font-size: 1.4rem;
+        font-weight: 800;
+    }
+
+    .mini-stat p{
+        margin: 6px 0 0;
+        font-size: 0.9rem;
+        color: #fff;
+    }
+
+    .hero-card-wrap{
+        position: relative;
+    }
+
+    .hero-main-card{
+        background: #ffffff;
+        color: #1f2937;
+        border-radius: 28px;
+        padding: 28px;
+        box-shadow: 0 18px 50px rgba(0,0,0,0.18);
+    }
+
+    .hero-main-card h3{
+        color: #0d6efd;
+        font-weight: 800;
+        margin-bottom: 20px;
+    }
+
+    .hero-service-list{
+        display: grid;
+        gap: 16px;
+    }
+
+    .hero-service-item{
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        padding: 14px;
+        border-radius: 16px;
+        background: #f8fbff;
+    }
+
+    .hero-service-item span{
+        font-size: 1.6rem;
+    }
+
+    .hero-service-item h6{
+        margin: 0 0 4px;
+        font-weight: 700;
+    }
+
+    .hero-service-item p{
+        margin: 0;
+        color: #6b7280;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    .floating-card{
+        position: absolute;
+        background: #fff;
+        color: #111827;
+        padding: 16px 20px;
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+        min-width: 160px;
+    }
+
+    .floating-card strong{
+        display: block;
+        font-size: 1.4rem;
+        color: #0d6efd;
+    }
+
+    .floating-card span{
+        font-size: 0.92rem;
+        color: #6b7280;
+    }
+
+    .floating-one{
+        top: -20px;
+        right: -20px;
+    }
+
+    .floating-two{
+        bottom: -20px;
+        left: -20px;
+    }
+
+    .section-head h2{
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    .section-head p{
+        color: #6b7280;
+        margin-top: 10px;
+    }
+
+    .feature-box{
+        background: #fff;
+        border-radius: 24px;
+        padding: 28px;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.08);
+        height: 100%;
+        transition: 0.3s ease;
+    }
+
+    .feature-box:hover{
+        transform: translateY(-6px);
+    }
+
+    .feature-icon{
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #eef5ff;
+        font-size: 1.8rem;
+        margin-bottom: 18px;
+    }
+
+    .feature-box h4{
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .feature-box p{
+        color: #6b7280;
+        line-height: 1.7;
+        margin: 0;
+    }
+
+    .stats-wrapper{
+        background: linear-gradient(135deg, #0d6efd, #0b57d0);
+        border-radius: 28px;
+        padding: 30px;
+        box-shadow: 0 14px 34px rgba(13,110,253,0.20);
+    }
+
+    .stat-box{
+        color: #fff;
+    }
+
+    .stat-box h3{
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+
+    .stat-box p{
+        margin: 0;
+        color: rgba(255,255,255,0.9);
+    }
+
+    @media (max-width: 991px){
+        .hero-text h1{
+            font-size: 2.3rem;
+        }
+
+        .floating-one,
+        .floating-two{
+            position: static;
+            margin-top: 14px;
+        }
+
+        .hero-card-wrap{
+            margin-top: 20px;
+        }
+    }
+
+    @media (max-width: 576px){
+        .hero-text h1{
+            font-size: 1.9rem;
+        }
+
+        .hero-buttons{
+            flex-direction: column;
+        }
+
+        .hero-buttons .btn{
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}

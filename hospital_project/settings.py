@@ -52,7 +52,6 @@ DATABASES = {
         'NAME': 'hospital_db',
         'USER': 'postgres',
         'PASSWORD': 'Balaji@2005',
-        'HOST': 'localhost',
         'PORT': '5433',
     }
 }

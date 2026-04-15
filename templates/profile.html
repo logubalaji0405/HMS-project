@@ -7,46 +7,91 @@
     <div class="row justify-content-center">
         <div class="col-md-6">
 
-            <div class="box text-center">
 
-                <!-- Profile Image -->
-                <div class="mb-3">
-                    {% if user.profile.profile_image %}
-                        <img src="{{ user.profile.profile_image.url }}" 
-                             style="width:120px;height:120px;border-radius:50%;object-fit:cover;">
-                    {% else %}
-                        <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
-                             style="width:120px;height:120px;border-radius:50%;">
-                    {% endif %}
-                </div>
+        <div class="box text-center">
 
-                <h4>{{ user.username }}</h4>
-                <p class="text-muted">{{ user.email }}</p>
-
-                <hr>
-
-                <p><strong>Role:</strong> {{ user.profile.role }}</p>
-
-                {% if user.profile.phone %}
-                    <p><strong>Phone:</strong> {{ user.profile.phone }}</p>
+            <!-- PROFILE IMAGE -->
+            <div class="mb-3">
+                {% if profile.profile_image %}
+                    <img src="{{ profile.profile_image.url }}"
+                         style="width:120px;height:120px;border-radius:50%;object-fit:cover;">
+                {% else %}
+                    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                         style="width:120px;height:120px;border-radius:50%;">
                 {% endif %}
-
-                {% if user.profile.age %}
-                    <p><strong>Age:</strong> {{ user.profile.age }}</p>
-                {% endif %}
-
-                {% if user.profile.address %}
-                    <p><strong>Address:</strong> {{ user.profile.address }}</p>
-                {% endif %}
-
-                <a href="{% url 'edit_profile' %}" class="btn btn-primary mt-3">
-                    ✏️ Edit Profile
-                </a>
-
             </div>
 
+            <h4>{{ request.user.username }}</h4>
+            <p class="text-muted">{{ request.user.email }}</p>
+
+            <hr>
+
+            <!-- ROLE -->
+            <p><strong>Role:</strong> {{ role }}</p>
+
+            <!-- COMMON DETAILS -->
+            {% if profile.phone %}
+                <p><strong>Phone:</strong> {{ profile.phone }}</p>
+            {% endif %}
+
+            {% if profile.age %}
+                <p><strong>Age:</strong> {{ profile.age }}</p>
+            {% endif %}
+
+            {% if profile.address %}
+                <p><strong>Address:</strong> {{ profile.address }}</p>
+            {% endif %}
+
+            <!-- 🔵 PATIENT DETAILS -->
+            {% if role == 'patient' %}
+                <hr>
+                <h5 class="text-primary">🧑 Patient Details</h5>
+
+                <p>Total Appointments:
+                    {{ request.user.patient_appointments.count }}
+                </p>
+
+            {% endif %}
+
+            <!-- 🟢 DOCTOR DETAILS -->
+            {% if role == 'doctor' %}
+                <hr>
+                <h5 class="text-success">🩺 Doctor Details</h5>
+
+                <p><strong>Department:</strong> {{ profile.department }}</p>
+
+                <p>
+                    <strong>Status:</strong>
+                    {% if profile.is_approved %}
+                        <span class="text-success">Approved ✅</span>
+                    {% else %}
+                        <span class="text-warning">Pending Approval ⏳</span>
+                    {% endif %}
+                </p>
+
+                <p>Total Patients:
+                    {{ request.user.doctor_appointments.count }}
+                </p>
+
+            {% endif %}
+
+            <!-- ADMIN -->
+            {% if role == 'admin' %}
+                <hr>
+                <h5 class="text-danger">🛠 Admin Panel</h5>
+                <p>Full system access</p>
+            {% endif %}
+
+            <a href="{% url 'edit_profile' %}" class="btn btn-primary mt-3">
+                ✏️ Edit Profile
+            </a>
+
         </div>
+
     </div>
+</div>
+
+
 </div>
 
 {% endblock %}

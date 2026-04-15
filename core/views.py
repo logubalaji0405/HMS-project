@@ -302,9 +302,14 @@ def chat_view(request, receiver_id):
     })
 @login_required
 def profile(request):
-    profile = get_object_or_404(Profile, user=request.user)
-    return render(request, 'profile.html', {'profile': profile})
+    profile = request.user.profile
 
+    context = {
+        'profile': profile,
+        'role': profile.role
+    }
+
+    return render(request, 'profile.html', context)
 
 @login_required
 def edit_profile(request):

@@ -1,149 +1,185 @@
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 
+<!DOCTYPE html>
+
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Healix HMS{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background: #f5f8ff;
-            font-family: Arial, sans-serif;
-        }
 
-        .navbar {
-            background: linear-gradient(90deg, #0d6efd, #0b57d0);
-        }
 
-        .navbar-brand,
-        .nav-link {
-            color: #fff !important;
-            font-weight: 600;
-        }
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-        .box {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-            padding: 24px;
-        }
+<style>
+    body {
+        background: #f5f8ff;
+        font-family: Arial, sans-serif;
+    }
 
-        .card-stat {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-            padding: 24px;
-            text-align: center;
-            height: 100%;
-        }
+    .navbar {
+        background: linear-gradient(90deg, #0d6efd, #0b57d0);
+    }
 
-        footer {
-            background: #0f172a;
-            color: #fff;
-            text-align: center;
-            padding: 14px;
-            margin-top: 50px;
-        }
-    </style>
+    .navbar-brand,
+    .nav-link {
+        color: #fff !important;
+        font-weight: 600;
+    }
+
+    .navbar img {
+        border: 2px solid white;
+    }
+
+    .dropdown-menu {
+        border-radius: 12px;
+    }
+
+    .dropdown-item:hover {
+        background: #f0f6ff;
+    }
+
+    .box {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        padding: 24px;
+    }
+
+    footer {
+        background: #0f172a;
+        color: #fff;
+        text-align: center;
+        padding: 14px;
+        margin-top: 50px;
+    }
+</style>
+
+
 </head>
 
 <body>
 
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">🏥 Healix HMS</a>
+<!-- NAVBAR -->
 
-            <button class="navbar-toggler bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+<nav class="navbar navbar-expand-lg">
+    <div class="container d-flex align-items-center">
 
-            <div class="collapse navbar-collapse" id="menu">
-                <ul class="navbar-nav ms-auto align-items-center">
 
-                    {% if user.is_authenticated %}
+    <!-- LEFT: LOGO -->
+    <a class="navbar-brand" href="{% url 'home' %}">🏥 Healix HMS</a>
 
-                    <!-- Profile Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
-                            data-bs-toggle="dropdown">
+    <!-- RIGHT SIDE -->
+    <div class="d-flex align-items-center ms-auto">
 
-                            {% if user.profile.profile_image %}
-                            <img src="{{ user.profile.profile_image.url }}"
-                                style="width:35px;height:35px;border-radius:50%;object-fit:cover;margin-right:8px;">
-                            {% else %}
-                            <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
-                                style="width:35px;height:35px;border-radius:50%;margin-right:8px;">
-                            {% endif %}
+        {% if user.is_authenticated %}
 
-                            {{ user.username }}
-                        </a>
+        <!-- PROFILE DROPDOWN -->
+        <div class="dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center"
+               href="#" data-bs-toggle="dropdown">
 
-                        <ul class="dropdown-menu dropdown-menu-end shadow">
-                            <li>
-                                <a class="dropdown-item" href="{% url 'profile' %}">👤 My Profile</a>
-                            </li>
+                {% if user.profile.profile_image %}
+                    <img src="{{ user.profile.profile_image.url }}"
+                         style="width:35px;height:35px;border-radius:50%;">
+                {% else %}
+                    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                         style="width:35px;height:35px;border-radius:50%;">
+                {% endif %}
 
-                            {% if user.profile.role == 'patient' %}
-                            <li>
-                                <a class="dropdown-item" href="{% url 'patient_dashboard' %}">Dashboard</a>
-                            </li>
-                            {% elif user.profile.role == 'doctor' %}
-                            <li>
-                                <a class="dropdown-item" href="{% url 'doctor_dashboard' %}">Dashboard</a>
-                            </li>
-                            {% elif user.profile.role == 'admin' %}
-                            <li>
-                                <a class="dropdown-item" href="{% url 'admin_dashboard' %}">Dashboard</a>
-                            </li>
-                            {% endif %}
+            </a>
 
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
+            <ul class="dropdown-menu dropdown-menu-end shadow">
+                <li>
+                    <a class="dropdown-item" href="{% url 'profile' %}">
+                        👤 Profile
+                    </a>
+                </li>
 
-                            <li>
-                                <a class="dropdown-item text-danger" href="{% url 'logout' %}">Logout</a>
-                            </li>
-                        </ul>
-                    </li>
+                <li><hr class="dropdown-divider"></li>
 
-                    {% else %}
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'login' %}">Login</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'register' %}">Register</a>
-                    </li>
-
-                    {% endif %}
-
-                </ul>
-            </div>
+                <li>
+                    <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                        🚪 Logout
+                    </a>
+                </li>
+            </ul>
         </div>
-    </nav>
 
-    <div class="container mt-3">
-        {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        {% endfor %}
         {% endif %}
+
+        <!-- MENU BUTTON -->
+        <button class="navbar-toggler bg-light ms-2" type="button"
+                data-bs-toggle="collapse" data-bs-target="#menu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
     </div>
 
-    {% block content %}{% endblock %}
+    <!-- MENU ITEMS -->
+    <div class="collapse navbar-collapse" id="menu">
+        <ul class="navbar-nav ms-auto">
 
-    <footer>
-        © 2026 Healix Hospital Management System
-    </footer>
+            {% if user.is_authenticated %}
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'home' %}">🏠 Home</a>
+            </li>
+
+            <li class="nav-item">
+                {% if user.profile.role == 'patient' %}
+                    <a class="nav-link" href="{% url 'patient_dashboard' %}">📊 Dashboard</a>
+                {% elif user.profile.role == 'doctor' %}
+                    <a class="nav-link" href="{% url 'doctor_dashboard' %}">📊 Dashboard</a>
+                {% elif user.profile.role == 'admin' %}
+                    <a class="nav-link" href="{% url 'admin_dashboard' %}">📊 Dashboard</a>
+                {% endif %}
+            </li>
+
+            {% else %}
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'login' %}">Login</a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'register' %}">Register</a>
+            </li>
+
+            {% endif %}
+
+        </ul>
+    </div>
+
+</div>
+
+
+</nav>
+
+<!-- MESSAGES -->
+
+<div class="container mt-3">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<!-- CONTENT -->
+
+{% block content %}{% endblock %}
+
+<!-- FOOTER -->
+
+<footer>
+    © 2026 Healix Hospital Management System
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
-
 </html>

@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,14 +26,14 @@
         .box {
             background: #fff;
             border-radius: 16px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
             padding: 24px;
         }
 
         .card-stat {
             background: #fff;
             border-radius: 16px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
             padding: 24px;
             text-align: center;
             height: 100%;
@@ -47,41 +48,69 @@
         }
     </style>
 </head>
+
 <body>
 
-<nav class="navbar navbar-expand-lg">
-    <div class="container">
-        <a class="navbar-brand" href="{% url 'home' %}">🏥 Healix HMS</a>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">🏥 Healix HMS</a>
 
-        <button class="navbar-toggler bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+            <button class="navbar-toggler bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-        <div class="collapse navbar-collapse" id="menu">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'home' %}">Home</a>
-                </li>
+            <div class="collapse navbar-collapse" id="menu">
+                <ul class="navbar-nav ms-auto align-items-center">
 
-                {% if user.is_authenticated %}
-                    {% if user.profile.role == 'patient' %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'patient_dashboard' %}">Dashboard</a>
-                        </li>
-                    {% elif user.profile.role == 'doctor' %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'doctor_dashboard' %}">Dashboard</a>
-                        </li>
-                    {% elif user.profile.role == 'admin' %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'admin_dashboard' %}">Dashboard</a>
-                        </li>
-                    {% endif %}
+                    {% if user.is_authenticated %}
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                    <!-- Profile Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
+                            data-bs-toggle="dropdown">
+
+                            {% if user.profile.profile_image %}
+                            <img src="{{ user.profile.profile_image.url }}"
+                                style="width:35px;height:35px;border-radius:50%;object-fit:cover;margin-right:8px;">
+                            {% else %}
+                            <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                                style="width:35px;height:35px;border-radius:50%;margin-right:8px;">
+                            {% endif %}
+
+                            {{ user.username }}
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'profile' %}">👤 My Profile</a>
+                            </li>
+
+                            {% if user.profile.role == 'patient' %}
+                            <li>
+                                <a class="dropdown-item" href="{% url 'patient_dashboard' %}">Dashboard</a>
+                            </li>
+                            {% elif user.profile.role == 'doctor' %}
+                            <li>
+                                <a class="dropdown-item" href="{% url 'doctor_dashboard' %}">Dashboard</a>
+                            </li>
+                            {% elif user.profile.role == 'admin' %}
+                            <li>
+                                <a class="dropdown-item" href="{% url 'admin_dashboard' %}">Dashboard</a>
+                            </li>
+                            {% endif %}
+
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'logout' %}">Logout</a>
+                            </li>
+                        </ul>
                     </li>
-                {% else %}
+
+                    {% else %}
+
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'login' %}">Login</a>
                     </li>
@@ -89,29 +118,32 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'register' %}">Register</a>
                     </li>
-                {% endif %}
-            </ul>
-        </div>
-    </div>
-</nav>
 
-<div class="container mt-3">
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    {% endif %}
+
+                </ul>
             </div>
+        </div>
+    </nav>
+
+    <div class="container mt-3">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
         {% endfor %}
-    {% endif %}
-</div>
+        {% endif %}
+    </div>
 
-{% block content %}{% endblock %}
+    {% block content %}{% endblock %}
 
-<footer>
-    © 2026 Healix Hospital Management System
-</footer>
+    <footer>
+        © 2026 Healix Hospital Management System
+    </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

@@ -22,4 +22,6 @@ urlpatterns = [
     path('approve-doctor/<int:profile_id>/', views.approve_doctor, name='approve_doctor'),
 
     path('chat/<int:receiver_id>/', views.chat_view, name='chat'),
+    path('profile/', views.profile, name='profile'),
+    path('edit-profile/', views.edit_profile, name='edit_profile'),
 ]

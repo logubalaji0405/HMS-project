@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="box">
+                <h4 class="mb-3">Edit Profile</h4>
+
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label>Profile Image</label>
+                        <input type="file" name="profile_image" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Phone</label>
+                        <input type="text" name="phone" value="{{ user.profile.phone }}" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Age</label>
+                        <input type="number" name="age" value="{{ user.profile.age }}" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Address</label>
+                        <textarea name="address" class="form-control">{{ user.profile.address }}</textarea>
+                    </div>
+
+                    <button class="btn btn-success w-100">Update Profile</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

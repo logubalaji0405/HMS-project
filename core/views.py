@@ -300,3 +300,25 @@ def chat_view(request, receiver_id):
         'receiver': receiver,
         'messages_list': messages_list
     })
+
+@login_required
+def profile(request):
+    return render(request, 'profile.html')
+
+    
+@login_required
+def edit_profile(request):
+    profile = request.user.profile
+
+    if request.method == 'POST':
+        profile.phone = request.POST.get('phone')
+        profile.age = request.POST.get('age')
+        profile.address = request.POST.get('address')
+
+        if request.FILES.get('profile_image'):
+            profile.profile_image = request.FILES.get('profile_image')
+
+        profile.save()
+        return redirect('profile')
+
+    return render(request, 'edit_profile.html')

@@ -1,30 +1,52 @@
 {% extends 'base.html' %}
-{% block title %}Profile | Healix HMS{% endblock %}
+{% block title %}My Profile{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+
+<div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card-box">
-                <h2 class="text-center mb-4">My Profile</h2>
+        <div class="col-md-6">
 
-                <div class="row align-items-center g-4">
-                    <div class="col-md-4 text-center">
-                        <div style="width:140px; height:140px; border-radius:50%; background:#e9f2ff; color:#0d6efd; display:flex; align-items:center; justify-content:center; font-size:3rem; font-weight:800; margin:auto;">
-                            {{ user.username|first|upper }}
-                        </div>
-                    </div>
+            <div class="box text-center">
 
-                    <div class="col-md-8">
-                        <h4>{{ user.first_name|default:user.username }}</h4>
-                        <p><strong>Username:</strong> {{ user.username }}</p>
-                        <p><strong>Email:</strong> {{ user.email|default:"Not added" }}</p>
-                        <p><strong>Status:</strong> Active User</p>
-                        <a href="{% url 'dashboard' %}" class="btn btn-primary">Go to Dashboard</a>
-                    </div>
+                <!-- Profile Image -->
+                <div class="mb-3">
+                    {% if user.profile.profile_image %}
+                        <img src="{{ user.profile.profile_image.url }}" 
+                             style="width:120px;height:120px;border-radius:50%;object-fit:cover;">
+                    {% else %}
+                        <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                             style="width:120px;height:120px;border-radius:50%;">
+                    {% endif %}
                 </div>
+
+                <h4>{{ user.username }}</h4>
+                <p class="text-muted">{{ user.email }}</p>
+
+                <hr>
+
+                <p><strong>Role:</strong> {{ user.profile.role }}</p>
+
+                {% if user.profile.phone %}
+                    <p><strong>Phone:</strong> {{ user.profile.phone }}</p>
+                {% endif %}
+
+                {% if user.profile.age %}
+                    <p><strong>Age:</strong> {{ user.profile.age }}</p>
+                {% endif %}
+
+                {% if user.profile.address %}
+                    <p><strong>Address:</strong> {{ user.profile.address }}</p>
+                {% endif %}
+
+                <a href="{% url 'edit_profile' %}" class="btn btn-primary mt-3">
+                    ✏️ Edit Profile
+                </a>
+
             </div>
+
         </div>
     </div>
 </div>
+
 {% endblock %}

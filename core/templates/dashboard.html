@@ -1,0 +1,19 @@
+<h2>Dashboard</h2>
+
+<a href="/book/">Book Appointment</a>
+
+<table border="1">
+<tr>
+<th>Doctor</th>
+<th>Date</th>
+<th>Status</th>
+</tr>
+
+{% for a in appointments %}
+<tr>
+<td>{{ a.doctor.user.username }}</td>
+<td>{{ a.date }}</td>
+<td>{{ a.status }}</td>
+</tr>
+{% endfor %}
+</table>

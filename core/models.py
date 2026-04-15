@@ -15,7 +15,6 @@ class Profile(models.Model):
     phone = models.CharField(max_length=15, blank=True, null=True)
     department = models.CharField(max_length=100, blank=True, null=True)
     is_approved = models.BooleanField(default=False)
-
     age = models.IntegerField(null=True, blank=True)
     address = models.TextField(blank=True, null=True)
     profile_image = models.ImageField(upload_to='profiles/', blank=True, null=True)

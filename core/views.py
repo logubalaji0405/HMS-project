@@ -300,25 +300,26 @@ def chat_view(request, receiver_id):
         'receiver': receiver,
         'messages_list': messages_list
     })
-
 @login_required
 def profile(request):
-    return render(request, 'profile.html')
+    profile = get_object_or_404(Profile, user=request.user)
+    return render(request, 'profile.html', {'profile': profile})
 
-    
+
 @login_required
 def edit_profile(request):
-    profile = request.user.profile
+    profile = get_object_or_404(Profile, user=request.user)
 
     if request.method == 'POST':
-        profile.phone = request.POST.get('phone')
-        profile.age = request.POST.get('age')
-        profile.address = request.POST.get('address')
+        profile.phone = request.POST.get('phone', '')
+        profile.age = request.POST.get('age') or None
+        profile.address = request.POST.get('address', '')
 
         if request.FILES.get('profile_image'):
             profile.profile_image = request.FILES.get('profile_image')
 
         profile.save()
+        messages.success(request, "Profile updated successfully.")
         return redirect('profile')
 
-    return render(request, 'edit_profile.html')
+    return render(request, 'edit_profile.html', {'profile': profile})

@@ -23,13 +23,7 @@
         <div class="chat-footer p-3">
             <form id="chat-form" class="d-flex gap-2">
                 {% csrf_token %}
-                <input
-                    type="text"
-                    id="message-input"
-                    class="form-control rounded-pill px-4"
-                    placeholder="Type your message..."
-                    autocomplete="off"
-                >
+                <input type="text" id="message-input" class="form-control rounded-pill px-4" placeholder="Type your message..." autocomplete="off">
                 <button type="submit" class="btn btn-primary rounded-pill px-4">Send</button>
             </form>
         </div>
@@ -56,15 +50,9 @@
     flex-direction: column;
     gap: 12px;
 }
-.msg-row{
-    display: flex;
-}
-.msg-row.me{
-    justify-content: flex-end;
-}
-.msg-row.other{
-    justify-content: flex-start;
-}
+.msg-row{ display: flex; }
+.msg-row.me{ justify-content: flex-end; }
+.msg-row.other{ justify-content: flex-start; }
 .msg-bubble{
     max-width: 72%;
     padding: 12px 16px;
@@ -95,7 +83,8 @@
 </style>
 
 <script>
-const roomId = "{{ room.id }}";
+const messagesUrl = "{% url 'get_messages' room.id %}";
+const sendUrl = "{% url 'send_message' room.id %}";
 const chatBox = document.getElementById("chat-box");
 const chatForm = document.getElementById("chat-form");
 const messageInput = document.getElementById("message-input");
@@ -112,9 +101,9 @@ function escapeHtml(text) {
 }
 
 function renderMessages(messages) {
-    const jsonSnapshot = JSON.stringify(messages);
-    if (jsonSnapshot === lastRendered) return;
-    lastRendered = jsonSnapshot;
+    const snapshot = JSON.stringify(messages);
+    if (snapshot === lastRendered) return;
+    lastRendered = snapshot;
 
     chatBox.innerHTML = "";
 
@@ -138,17 +127,12 @@ function renderMessages(messages) {
 
 async function loadMessages() {
     try {
-        const response = await fetch(`/chat-room/${roomId}/messages/`, {
+        const response = await fetch(messagesUrl, {
             method: "GET",
-            headers: {
-                "X-Requested-With": "XMLHttpRequest"
-            }
+            headers: { "X-Requested-With": "XMLHttpRequest" }
         });
-
         const data = await response.json();
-        if (data.messages) {
-            renderMessages(data.messages);
-        }
+        if (data.messages) renderMessages(data.messages);
     } catch (error) {
         console.log("Error loading messages:", error);
     }
@@ -165,12 +149,10 @@ chatForm.addEventListener("submit", async function(e) {
     formData.append("csrfmiddlewaretoken", document.querySelector('[name=csrfmiddlewaretoken]').value);
 
     try {
-        const response = await fetch(`/chat-room/${roomId}/send/`, {
+        const response = await fetch(sendUrl, {
             method: "POST",
             body: formData,
-            headers: {
-                "X-Requested-With": "XMLHttpRequest"
-            }
+            headers: { "X-Requested-With": "XMLHttpRequest" }
         });
 
         const data = await response.json();

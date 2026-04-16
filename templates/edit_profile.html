@@ -2,36 +2,94 @@
 {% block title %}Edit Profile{% endblock %}
 
 {% block content %}
-
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-7 col-lg-6">
 
             <div class="box">
-                <h4 class="mb-3">Edit Profile</h4>
+                <h4 class="mb-3 text-center">
+                    {% if profile.role == 'patient' %}
+                        Patient Profile
+                    {% elif profile.role == 'doctor' %}
+                        Doctor Profile
+                    {% elif profile.role == 'admin' %}
+                        Admin Profile
+                    {% endif %}
+                </h4>
 
                 <form method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
 
+                    <div class="text-center mb-4">
+                        {% if profile.profile_image %}
+                            <img src="{{ profile.profile_image.url }}"
+                                 alt="Profile"
+                                 style="width:100px;height:100px;border-radius:50%;object-fit:cover;">
+                        {% else %}
+                            <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                                 alt="Profile"
+                                 style="width:100px;height:100px;border-radius:50%;object-fit:cover;">
+                        {% endif %}
+                    </div>
+
                     <div class="mb-3">
-                        <label>Profile Image</label>
+                        <label class="form-label">Profile Image</label>
                         <input type="file" name="profile_image" class="form-control">
                     </div>
 
                     <div class="mb-3">
-                        <label>Phone</label>
-                        <input type="text" name="phone" value="{{ user.profile.phone }}" class="form-control">
+                        <label class="form-label">Phone</label>
+                        <input type="text" name="phone" value="{{ profile.phone }}" class="form-control">
                     </div>
 
-                    <div class="mb-3">
-                        <label>Age</label>
-                        <input type="number" name="age" value="{{ user.profile.age }}" class="form-control">
-                    </div>
+                    {% if profile.role == 'patient' %}
+                        <div class="mb-3">
+                            <label class="form-label">Age</label>
+                            <input type="number" name="age" value="{{ profile.age }}" class="form-control">
+                        </div>
 
-                    <div class="mb-3">
-                        <label>Address</label>
-                        <textarea name="address" class="form-control">{{ user.profile.address }}</textarea>
-                    </div>
+                        <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            <textarea name="address" class="form-control" rows="3">{{ profile.address }}</textarea>
+                        </div>
+                    {% endif %}
+
+                    {% if profile.role == 'doctor' %}
+                        <div class="mb-3">
+                            <label class="form-label">Department</label>
+                            <input type="text" name="department" value="{{ profile.department }}" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Age</label>
+                            <input type="number" name="age" value="{{ profile.age }}" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            <textarea name="address" class="form-control" rows="3">{{ profile.address }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Approval Status</label>
+                            <input type="text"
+                                   class="form-control"
+                                   value="{% if profile.is_approved %}Approved{% else %}Pending{% endif %}"
+                                   readonly>
+                        </div>
+                    {% endif %}
+
+                    {% if profile.role == 'admin' %}
+                        <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            <textarea name="address" class="form-control" rows="3">{{ profile.address }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <input type="text" class="form-control" value="Administrator" readonly>
+                        </div>
+                    {% endif %}
 
                     <button class="btn btn-success w-100">Update Profile</button>
                 </form>
@@ -40,5 +98,4 @@
         </div>
     </div>
 </div>
-
 {% endblock %}

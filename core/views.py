@@ -311,6 +311,7 @@ def profile(request):
 
     return render(request, 'profile.html', context)
 
+
 @login_required
 def edit_profile(request):
     profile = get_object_or_404(Profile, user=request.user)
@@ -319,6 +320,9 @@ def edit_profile(request):
         profile.phone = request.POST.get('phone', '')
         profile.age = request.POST.get('age') or None
         profile.address = request.POST.get('address', '')
+
+        if profile.role == 'doctor':
+            profile.department = request.POST.get('department', '')
 
         if request.FILES.get('profile_image'):
             profile.profile_image = request.FILES.get('profile_image')

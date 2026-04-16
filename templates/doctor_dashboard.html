@@ -2,71 +2,718 @@
 {% block title %}Doctor Dashboard{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <h2 class="mb-4">Doctor Dashboard</h2>
 
-    <div class="row g-4 mb-4">
-        <div class="col-md-4">
-            <div class="card-stat">
-                <h3>{{ total_bookings }}</h3>
-                <p>Total Bookings</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card-stat">
-                <h3>{{ pending_bookings }}</h3>
-                <p>Pending Bookings</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card-stat">
-                <h3>{{ confirmed_bookings }}</h3>
-                <p>Confirmed Bookings</p>
-            </div>
-        </div>
-    </div>
+<style>
+    .dashboard-wrapper {
+        padding-top: 30px;
+        padding-bottom: 30px;
+    }
 
-    <div class="box">
-        <h4>Patient Appointments</h4>
-        <table class="table mt-3">
-            <thead>
-                <tr>
-                    <th>Patient</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Problem</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                    <th>Chat</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in appointments %}
-                <tr>
-                    <td>{{ item.patient.first_name|default:item.patient.username }}</td>
-                    <td>{{ item.appointment_date }}</td>
-                    <td>{{ item.appointment_time }}</td>
-                    <td>{{ item.problem }}</td>
-                    <td>{{ item.status }}</td>
-                    <td>
-                        {% if item.status == 'pending' %}
-                            <a href="{% url 'confirm_booking' item.id %}" class="btn btn-sm btn-success">Confirm</a>
-                            <a href="{% url 'reject_booking' item.id %}" class="btn btn-sm btn-danger">Reject</a>
-                        {% else %}
-                            <span class="text-muted">Updated</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <a href="{% url 'chat' item.patient.id %}" class="btn btn-sm btn-primary">Chat</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="7">No bookings available</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    .dashboard-hero {
+        background: linear-gradient(135deg, #0d6efd, #0b57d0);
+        border-radius: 28px;
+        padding: 35px;
+        color: #fff;
+        box-shadow: 0 15px 35px rgba(13, 110, 253, 0.20);
+        margin-bottom: 28px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dashboard-hero::before {
+        content: "";
+        position: absolute;
+        right: -40px;
+        top: -40px;
+        width: 180px;
+        height: 180px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 50%;
+    }
+
+    .dashboard-hero::after {
+        content: "";
+        position: absolute;
+        right: 80px;
+        bottom: -45px;
+        width: 130px;
+        height: 130px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 50%;
+    }
+
+    .dashboard-hero h2,
+    .dashboard-hero p,
+    .hero-actions {
+        position: relative;
+        z-index: 2;
+    }
+
+    .dashboard-hero h2 {
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .dashboard-hero p {
+        margin-bottom: 0;
+        opacity: 0.95;
+        max-width: 650px;
+    }
+
+    .hero-actions .btn {
+        border-radius: 12px;
+        font-weight: 600;
+        padding: 10px 18px;
+    }
+
+    .stat-card {
+        background: #fff;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        height: 100%;
+        border: 1px solid #edf2f7;
+        transition: 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-6px);
+    }
+
+    .stat-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .stat-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .icon-blue {
+        background: rgba(13, 110, 253, 0.10);
+        color: #0d6efd;
+    }
+
+    .icon-yellow {
+        background: rgba(245, 158, 11, 0.12);
+        color: #d97706;
+    }
+
+    .icon-green {
+        background: rgba(34, 197, 94, 0.12);
+        color: #15803d;
+    }
+
+    .stat-card h3 {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 5px;
+        color: #0f172a;
+    }
+
+    .stat-card p {
+        margin: 0;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .panel-box {
+        background: #fff;
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        padding: 24px;
+        height: 100%;
+        border: 1px solid #edf2f7;
+    }
+
+    .doctor-profile-card {
+        text-align: center;
+    }
+
+    .doctor-avatar-wrap {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 15px;
+    }
+
+    .doctor-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #eaf2ff;
+        background: #fff;
+    }
+
+    .online-dot {
+        position: absolute;
+        right: 6px;
+        bottom: 8px;
+        width: 18px;
+        height: 18px;
+        background: #22c55e;
+        border: 3px solid #fff;
+        border-radius: 50%;
+    }
+
+    .doctor-name {
+        font-weight: 800;
+        margin-bottom: 6px;
+        color: #0f172a;
+    }
+
+    .doctor-mail {
+        color: #64748b;
+        margin-bottom: 20px;
+    }
+
+    .info-row {
+        background: #f8fbff;
+        border: 1px solid #edf2f7;
+        border-radius: 14px;
+        padding: 12px 14px;
+        margin-bottom: 12px;
+        text-align: left;
+        color: #334155;
+    }
+
+    .info-row strong {
+        color: #0f172a;
+    }
+
+    .quick-note {
+        margin-top: 18px;
+        background: linear-gradient(135deg, #eff6ff, #f8fbff);
+        border: 1px solid #dbeafe;
+        border-radius: 16px;
+        padding: 16px;
+        text-align: left;
+    }
+
+    .quick-note h6 {
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: #0f172a;
+    }
+
+    .quick-note p {
+        margin: 0;
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 800;
+        margin: 0;
+        color: #0f172a;
+    }
+
+    .section-sub {
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .simple-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .simple-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 0;
+        border-bottom: 1px solid #eef2f7;
+        gap: 10px;
+    }
+
+    .simple-list li:last-child {
+        border-bottom: none;
+    }
+
+    .list-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .mini-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: #dbeafe;
+        color: #1d4ed8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+    }
+
+    .time-pill {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-radius: 999px;
+        padding: 7px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .activity-item {
+        padding: 12px 0;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-item h6 {
+        margin-bottom: 4px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .activity-item p {
+        margin: 0;
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .quick-action-btn {
+        display: block;
+        text-align: center;
+        background: #f8fbff;
+        border: 1px solid #e2e8f0;
+        color: #0f172a;
+        text-decoration: none;
+        border-radius: 14px;
+        padding: 14px 12px;
+        font-weight: 700;
+        transition: 0.3s ease;
+    }
+
+    .quick-action-btn:hover {
+        background: #eef4ff;
+        color: #0d6efd;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        border-radius: 18px;
+    }
+
+    .appointment-table {
+        min-width: 1050px;
+        margin-bottom: 0;
+        vertical-align: middle;
+    }
+
+    .appointment-table thead th {
+        background: #eef4ff;
+        color: #0f172a;
+        border: none;
+        font-size: 14px;
+        font-weight: 700;
+        padding: 15px 14px;
+        white-space: nowrap;
+    }
+
+    .appointment-table tbody td {
+        padding: 15px 14px;
+        border-color: #eef2f7;
+        white-space: nowrap;
+        color: #334155;
+    }
+
+    .appointment-table tbody td.problem-col {
+        white-space: normal;
+        min-width: 180px;
+        max-width: 240px;
+    }
+
+    .patient-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .patient-mini {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #dbeafe;
+        color: #1d4ed8;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    .badge-status {
+        padding: 8px 13px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    .status-pending {
+        background: #fff4db;
+        color: #b7791f;
+    }
+
+    .status-confirmed {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-rejected {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .status-completed {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .btn-action {
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 7px 12px;
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    .btn-chat {
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 7px 14px;
+        font-size: 13px;
+    }
+
+    .empty-box {
+        text-align: center;
+        color: #64748b;
+        padding: 35px 10px;
+    }
+
+    .empty-box h6 {
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    @media (max-width: 991px) {
+        .dashboard-hero {
+            padding: 26px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-hero h2 {
+            font-size: 1.6rem;
+        }
+
+        .stat-card h3 {
+            font-size: 1.6rem;
+        }
+
+        .appointment-table {
+            min-width: 1100px;
+        }
+
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="container dashboard-wrapper">
+
+
+<div class="dashboard-hero">
+    <div class="row align-items-center g-3">
+        <div class="col-lg-8">
+            <h2>Welcome back, Dr. {{ request.user.first_name|default:request.user.username }}</h2>
+            <p>
+                View appointment requests, manage patient communication, monitor your daily schedule, and keep your workflow organized.
+            </p>
+        </div>
+        <div class="col-lg-4">
+            <div class="hero-actions d-flex flex-wrap gap-2 justify-content-lg-end">
+                <a href="{% url 'profile' %}" class="btn btn-light">View Profile</a>
+                <a href="{% url 'logout' %}" class="btn btn-outline-light">Logout</a>
+            </div>
+        </div>
     </div>
 </div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div>
+                    <h3>{{ total_bookings }}</h3>
+                    <p>Total Bookings</p>
+                </div>
+                <div class="stat-icon icon-blue">📋</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div>
+                    <h3>{{ pending_bookings }}</h3>
+                    <p>Pending Requests</p>
+                </div>
+                <div class="stat-icon icon-yellow">⏳</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div>
+                    <h3>{{ confirmed_bookings }}</h3>
+                    <p>Confirmed Bookings</p>
+                </div>
+                <div class="stat-icon icon-green">✅</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-lg-4">
+        <div class="panel-box doctor-profile-card mb-4">
+            <div class="doctor-avatar-wrap">
+                {% if request.user.profile.profile_image %}
+                    <img src="{{ request.user.profile.profile_image.url }}" alt="Doctor" class="doctor-avatar">
+                {% else %}
+                    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Doctor" class="doctor-avatar">
+                {% endif %}
+                <span class="online-dot"></span>
+            </div>
+
+            <h4 class="doctor-name">Dr. {{ request.user.first_name|default:request.user.username }}</h4>
+            <p class="doctor-mail">{{ request.user.email }}</p>
+
+            <div class="info-row">
+                <strong>Role:</strong> Doctor
+            </div>
+
+            <div class="info-row">
+                <strong>Department:</strong>
+                {{ request.user.profile.department|default:"General Department" }}
+            </div>
+
+            <div class="info-row">
+                <strong>Phone:</strong>
+                {{ request.user.profile.phone|default:"Not added" }}
+            </div>
+
+            <div class="info-row">
+                <strong>Status:</strong>
+                {% if request.user.profile.is_approved %}
+                    <span class="text-success fw-semibold">Approved</span>
+                {% else %}
+                    <span class="text-warning fw-semibold">Pending Approval</span>
+                {% endif %}
+            </div>
+
+            <div class="quick-note">
+                <h6>Doctor Panel Note</h6>
+                <p>Review pending appointments daily and use chat to respond quickly to patients.</p>
+            </div>
+        </div>
+
+        <div class="panel-box mb-4">
+            <div class="section-head">
+                <div>
+                    <h4 class="section-title">Quick Actions</h4>
+                    <div class="section-sub">Fast links for daily work</div>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <a href="{% url 'profile' %}" class="quick-action-btn">👤 My Profile</a>
+                <a href="{% url 'doctor_dashboard' %}" class="quick-action-btn">📋 Refresh Dashboard</a>
+                <a href="{% url 'logout' %}" class="quick-action-btn">🚪 Logout</a>
+                <a href="{% url 'home' %}" class="quick-action-btn">🏥 Home</a>
+            </div>
+        </div>
+
+        <div class="panel-box">
+            <div class="section-head">
+                <div>
+                    <h4 class="section-title">Recent Activity</h4>
+                    <div class="section-sub">Your booking updates</div>
+                </div>
+            </div>
+
+            <div class="activity-item">
+                <h6>Total bookings managed</h6>
+                <p>{{ total_bookings }} booking request{{ total_bookings|pluralize }} in your dashboard.</p>
+            </div>
+
+            <div class="activity-item">
+                <h6>Pending workload</h6>
+                <p>{{ pending_bookings }} patient request{{ pending_bookings|pluralize }} waiting for action.</p>
+            </div>
+
+            <div class="activity-item">
+                <h6>Confirmed care</h6>
+                <p>{{ confirmed_bookings }} booking{{ confirmed_bookings|pluralize }} confirmed successfully.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+
+        <div class="panel-box mb-4">
+            <div class="section-head">
+                <div>
+                    <h4 class="section-title">Today’s Schedule</h4>
+                    <div class="section-sub">Quick look at active patient appointments</div>
+                </div>
+            </div>
+
+            <ul class="simple-list">
+                {% for item in appointments|slice:":4" %}
+                <li>
+                    <div class="list-left">
+                        <div class="mini-avatar">
+                            {{ item.patient.username|slice:":1"|upper }}
+                        </div>
+                        <div>
+                            <div class="fw-bold">{{ item.patient.first_name|default:item.patient.username }}</div>
+                            <div class="text-muted small">{{ item.appointment_date }}</div>
+                        </div>
+                    </div>
+                    <span class="time-pill">{{ item.appointment_time }}</span>
+                </li>
+                {% empty %}
+                <li>
+                    <span class="text-muted">No schedule available today.</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="panel-box">
+            <div class="section-head">
+                <div>
+                    <h4 class="section-title">Patient Appointments</h4>
+                    <div class="section-sub">Manage all booking requests in one place</div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table appointment-table">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Problem</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                            <th>Chat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in appointments %}
+                        <tr>
+                            <td>
+                                <div class="patient-pill">
+                                    <span class="patient-mini">
+                                        {{ item.patient.username|slice:":1"|upper }}
+                                    </span>
+                                    <span>{{ item.patient.first_name|default:item.patient.username }}</span>
+                                </div>
+                            </td>
+                            <td>{{ item.appointment_date }}</td>
+                            <td>{{ item.appointment_time }}</td>
+                            <td class="problem-col">{{ item.problem }}</td>
+                            <td>
+                                {% if item.status == 'pending' %}
+                                    <span class="badge-status status-pending">Pending</span>
+                                {% elif item.status == 'confirmed' %}
+                                    <span class="badge-status status-confirmed">Confirmed</span>
+                                {% elif item.status == 'rejected' %}
+                                    <span class="badge-status status-rejected">Rejected</span>
+                                {% elif item.status == 'completed' %}
+                                    <span class="badge-status status-completed">Completed</span>
+                                {% else %}
+                                    <span class="badge-status status-pending">{{ item.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.status == 'pending' %}
+                                    <a href="{% url 'confirm_booking' item.id %}" class="btn btn-success btn-sm btn-action">Confirm</a>
+                                    <a href="{% url 'reject_booking' item.id %}" class="btn btn-danger btn-sm btn-action">Reject</a>
+                                {% else %}
+                                    <span class="text-muted small">Updated</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'chat' item.patient.id %}" class="btn btn-primary btn-sm btn-chat">Chat</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-box">
+                                    <h6>No bookings available</h6>
+                                    <p class="mb-0">New patient appointments will appear here.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+</div>
+
 {% endblock %}

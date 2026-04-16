@@ -4,7 +4,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count
-from .models import Profile, Appointment, ChatMessage
+from django.http import JsonResponse, HttpResponseForbidden
+from django.views.decorators.http import require_GET, require_POST
+
+from .models import Profile, Appointment, ChatMessage, ChatRoom
 
 
 def home(request):
@@ -13,7 +16,7 @@ def home(request):
         profile = Profile.objects.filter(user=request.user).first()
         if profile:
             user_role = profile.role
-    return render(request, 'home.html')
+    return render(request, 'home.html', {'user_role': user_role})
 
 
 def register_view(request):
@@ -300,15 +303,15 @@ def chat_view(request, receiver_id):
         'receiver': receiver,
         'messages_list': messages_list
     })
+
+
 @login_required
 def profile(request):
     profile = request.user.profile
-
     context = {
         'profile': profile,
         'role': profile.role
     }
-
     return render(request, 'profile.html', context)
 
 
@@ -332,3 +335,103 @@ def edit_profile(request):
         return redirect('profile')
 
     return render(request, 'edit_profile.html', {'profile': profile})
+
+
+@login_required
+def doctor_list(request):
+    doctors = User.objects.filter(profile__role='doctor')
+    return render(request, 'chat/doctor_list.html', {'doctors': doctors})
+
+
+@login_required
+def start_chat(request, doctor_id):
+    doctor = get_object_or_404(User, id=doctor_id, profile__role='doctor')
+
+    if request.user.profile.role != 'patient':
+        return HttpResponseForbidden("Only patients can start chat with doctor.")
+
+    room, created = ChatRoom.objects.get_or_create(
+        patient=request.user,
+        doctor=doctor
+    )
+    return redirect('chat_room', room_id=room.id)
+
+
+@login_required
+def chat_room(request, room_id):
+    room = get_object_or_404(ChatRoom, id=room_id)
+
+    if request.user != room.patient and request.user != room.doctor:
+        return HttpResponseForbidden("You are not allowed to access this chat.")
+
+    other_user = room.doctor if request.user == room.patient else room.patient
+
+    return render(request, 'chat/chat_room.html', {
+        'room': room,
+        'other_user': other_user,
+    })
+
+
+@login_required
+@require_GET
+def get_messages(request, room_id):
+    room = get_object_or_404(ChatRoom, id=room_id)
+
+    if request.user != room.patient and request.user != room.doctor:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    messages_qs = room.messages.all()
+    messages_qs.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
+
+    data = []
+    for msg in messages_qs:
+        data.append({
+            'id': msg.id,
+            'sender': msg.sender.username,
+            'sender_id': msg.sender.id,
+            'message': msg.message,
+            'timestamp': msg.timestamp.strftime('%d %b %Y, %I:%M %p'),
+            'is_me': msg.sender == request.user,
+        })
+
+    return JsonResponse({'messages': data})
+
+
+@login_required
+@require_POST
+def send_message(request, room_id):
+    room = get_object_or_404(ChatRoom, id=room_id)
+
+    if request.user != room.patient and request.user != room.doctor:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    message_text = request.POST.get('message', '').strip()
+
+    if not message_text:
+        return JsonResponse({'error': 'Message cannot be empty'}, status=400)
+
+    msg = ChatMessage.objects.create(
+        room=room,
+        sender=request.user,
+        message=message_text
+    )
+
+    return JsonResponse({
+        'success': True,
+        'id': msg.id,
+        'sender': msg.sender.username,
+        'message': msg.message,
+        'timestamp': msg.timestamp.strftime('%d %b %Y, %I:%M %p'),
+    })
+
+
+@login_required
+def my_chats(request):
+    if request.user.profile.role == 'patient':
+        rooms = ChatRoom.objects.filter(patient=request.user).select_related('doctor', 'patient')
+    elif request.user.profile.role == 'doctor':
+        rooms = ChatRoom.objects.filter(doctor=request.user).select_related('doctor', 'patient')
+    else:
+        rooms = ChatRoom.objects.none()
+
+    return render(request, 'chat/my_chats.html', {'rooms': rooms})

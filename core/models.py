@@ -51,3 +51,15 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"{self.sender.username} -> {self.receiver.username}"
+
+    
+class ChatRoom(models.Model):
+    patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='patient_rooms')
+    doctor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='doctor_rooms')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('patient', 'doctor')
+
+    def __str__(self):
+        return f"Chat: {self.patient.username} ↔ {self.doctor.username}"

@@ -50,9 +50,7 @@ def register_view(request):
             messages.error(request, "Department is required for doctor registration.")
             return redirect('register')
 
-        approved = True
-        if role == 'doctor':
-            approved = False
+        approved = False if role == 'doctor' else True
 
         user = User.objects.create_user(
             username=username,
@@ -109,15 +107,7 @@ def login_view(request):
                 return redirect('login')
 
             login(request, user)
-
-            if profile.role == 'patient':
-                return redirect('home')
-            elif profile.role == 'doctor':
-                return redirect('home')
-            elif profile.role == 'admin':
-                return redirect('home')
-            else:
-                return redirect('home')
+            return redirect('home')
 
         messages.error(request, "Invalid username or password.")
         return redirect('login')
@@ -281,71 +271,47 @@ def approve_doctor(request, profile_id):
 
 
 @login_required
-def chat_view(request, receiver_id):
-    receiver = get_object_or_404(User, id=receiver_id)
-
-    messages_list = ChatMessage.objects.filter(
-        sender__in=[request.user, receiver],
-        receiver__in=[request.user, receiver]
-    ).order_by('sent_at')
-
-    if request.method == 'POST':
-        msg = request.POST.get('message', '').strip()
-        if msg:
-            ChatMessage.objects.create(
-                sender=request.user,
-                receiver=receiver,
-                message=msg
-            )
-            return redirect('chat', receiver_id=receiver.id)
-
-    return render(request, 'chat.html', {
-        'receiver': receiver,
-        'messages_list': messages_list
+def profile(request):
+    user_profile = request.user.profile
+    return render(request, 'profile.html', {
+        'profile': user_profile,
+        'role': user_profile.role
     })
 
 
 @login_required
-def profile(request):
-    profile = request.user.profile
-    context = {
-        'profile': profile,
-        'role': profile.role
-    }
-    return render(request, 'profile.html', context)
-
-
-@login_required
 def edit_profile(request):
-    profile = get_object_or_404(Profile, user=request.user)
+    user_profile = get_object_or_404(Profile, user=request.user)
 
     if request.method == 'POST':
-        profile.phone = request.POST.get('phone', '')
-        profile.age = request.POST.get('age') or None
-        profile.address = request.POST.get('address', '')
+        user_profile.phone = request.POST.get('phone', '')
+        user_profile.age = request.POST.get('age') or None
+        user_profile.address = request.POST.get('address', '')
 
-        if profile.role == 'doctor':
-            profile.department = request.POST.get('department', '')
+        if user_profile.role == 'doctor':
+            user_profile.department = request.POST.get('department', '')
 
         if request.FILES.get('profile_image'):
-            profile.profile_image = request.FILES.get('profile_image')
+            user_profile.profile_image = request.FILES.get('profile_image')
 
-        profile.save()
+        user_profile.save()
         messages.success(request, "Profile updated successfully.")
         return redirect('profile')
 
-    return render(request, 'edit_profile.html', {'profile': profile})
+    return render(request, 'edit_profile.html', {'profile': user_profile})
 
+
+# ---------------- CHAT ----------------
 
 @login_required
 def doctor_list(request):
-    doctors = User.objects.filter(profile__role='doctor')
+    doctors = User.objects.filter(profile__role='doctor', profile__is_approved=True)
     return render(request, 'chat/doctor_list.html', {'doctors': doctors})
 
 
 @login_required
 def start_chat(request, doctor_id):
-    doctor = get_object_or_404(User, id=doctor_id, profile__role='doctor')
+    doctor = get_object_or_404(User, id=doctor_id, profile__role='doctor', profile__is_approved=True)
 
     if request.user.profile.role != 'patient':
         return HttpResponseForbidden("Only patients can start chat with doctor.")
@@ -358,8 +324,20 @@ def start_chat(request, doctor_id):
 
 
 @login_required
+def my_chats(request):
+    if request.user.profile.role == 'patient':
+        rooms = ChatRoom.objects.filter(patient=request.user).select_related('doctor', 'patient')
+    elif request.user.profile.role == 'doctor':
+        rooms = ChatRoom.objects.filter(doctor=request.user).select_related('doctor', 'patient')
+    else:
+        rooms = ChatRoom.objects.none()
+
+    return render(request, 'chat/my_chats.html', {'rooms': rooms})
+
+
+@login_required
 def chat_room(request, room_id):
-    room = get_object_or_404(ChatRoom, id=room_id)
+    room = get_object_or_404(ChatRoom.objects.select_related('patient', 'doctor'), id=room_id)
 
     if request.user != room.patient and request.user != room.doctor:
         return HttpResponseForbidden("You are not allowed to access this chat.")
@@ -380,18 +358,18 @@ def get_messages(request, room_id):
     if request.user != room.patient and request.user != room.doctor:
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
-    messages_qs = room.messages.all()
+    messages_qs = ChatMessage.objects.filter(room=room).select_related('sender').order_by('timestamp')
     messages_qs.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
 
     data = []
     for msg in messages_qs:
         data.append({
             'id': msg.id,
+            'message': msg.message,
             'sender': msg.sender.username,
             'sender_id': msg.sender.id,
-            'message': msg.message,
+            'is_me': msg.sender_id == request.user.id,
             'timestamp': msg.timestamp.strftime('%d %b %Y, %I:%M %p'),
-            'is_me': msg.sender == request.user,
         })
 
     return JsonResponse({'messages': data})
@@ -406,7 +384,6 @@ def send_message(request, room_id):
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
     message_text = request.POST.get('message', '').strip()
-
     if not message_text:
         return JsonResponse({'error': 'Message cannot be empty'}, status=400)
 
@@ -419,19 +396,9 @@ def send_message(request, room_id):
     return JsonResponse({
         'success': True,
         'id': msg.id,
-        'sender': msg.sender.username,
         'message': msg.message,
+        'sender': msg.sender.username,
+        'sender_id': msg.sender.id,
+        'is_me': True,
         'timestamp': msg.timestamp.strftime('%d %b %Y, %I:%M %p'),
     })
-
-
-@login_required
-def my_chats(request):
-    if request.user.profile.role == 'patient':
-        rooms = ChatRoom.objects.filter(patient=request.user).select_related('doctor', 'patient')
-    elif request.user.profile.role == 'doctor':
-        rooms = ChatRoom.objects.filter(doctor=request.user).select_related('doctor', 'patient')
-    else:
-        rooms = ChatRoom.objects.none()
-
-    return render(request, 'chat/my_chats.html', {'rooms': rooms})

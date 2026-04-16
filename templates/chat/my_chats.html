@@ -13,7 +13,7 @@
                         <div>
                             {% if request.user.profile.role == 'patient' %}
                                 <h6 class="mb-1">Dr. {{ room.doctor.get_full_name|default:room.doctor.username }}</h6>
-                                <small class="text-muted">Doctor Chat</small>
+                                <small class="text-muted">{{ room.doctor.profile.department }}</small>
                             {% else %}
                                 <h6 class="mb-1">{{ room.patient.get_full_name|default:room.patient.username }}</h6>
                                 <small class="text-muted">Patient Chat</small>

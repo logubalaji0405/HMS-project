@@ -21,7 +21,7 @@
                         {% endif %}
 
                         <h5 class="fw-bold">Dr. {{ doctor.get_full_name|default:doctor.username }}</h5>
-                        <p class="text-muted mb-3">Specialist Doctor</p>
+                        <p class="text-muted mb-3">{{ doctor.profile.department }}</p>
 
                         <a href="{% url 'start_chat' doctor.id %}" class="btn btn-primary rounded-pill px-4">
                             Start Chat
@@ -31,7 +31,7 @@
             </div>
             {% empty %}
             <div class="col-12">
-                <div class="alert alert-warning">No doctors available.</div>
+                <div class="alert alert-warning">No approved doctors available.</div>
             </div>
             {% endfor %}
         </div>

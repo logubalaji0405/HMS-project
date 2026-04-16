@@ -1,125 +1,162 @@
 {% load static %}
+
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Healix HMS{% endblock %}</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <style>
-        body {
-            background: #f5f8ff;
-            font-family: Arial, sans-serif;
-        }
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-        .navbar {
-            background: linear-gradient(90deg, #0d6efd, #0b57d0);
-        }
+<style>
+    body {
+        background: #f5f8ff;
+        font-family: Arial, sans-serif;
+    }
 
-        .navbar-brand,
-        .nav-link {
-            color: #fff !important;
-            font-weight: 600;
-        }
+    .navbar {
+        background: linear-gradient(90deg, #0d6efd, #0b57d0);
+    }
 
-        .navbar img {
-            border: 2px solid white;
-        }
+    .navbar-brand,
+    .nav-link {
+        color: #fff !important;
+        font-weight: 600;
+    }
 
-        .dropdown-menu {
-            border-radius: 12px;
-        }
+    .navbar img {
+        border: 2px solid white;
+    }
 
-        .dropdown-item:hover {
-            background: #f0f6ff;
-        }
+    .dropdown-menu {
+        border-radius: 12px;
+    }
 
-        .box {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-            padding: 24px;
-        }
+    .dropdown-item:hover {
+        background: #f0f6ff;
+    }
 
-        footer {
-            background: #0f172a;
-            color: #fff;
-            text-align: center;
-            padding: 14px;
-            margin-top: 50px;
-        }
-    </style>
+    .box {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        padding: 24px;
+    }
+
+    footer {
+        background: #0f172a;
+        color: #fff;
+        text-align: center;
+        padding: 14px;
+        margin-top: 50px;
+    }
+</style>
+
+
 </head>
+
 <body>
+
+<!-- NAVBAR -->
 
 <nav class="navbar navbar-expand-lg">
     <div class="container d-flex align-items-center">
-        <a class="navbar-brand" href="{% url 'home' %}">🏥 Healix HMS</a>
 
-        <div class="d-flex align-items-center ms-auto">
-            {% if user.is_authenticated %}
-            <div class="dropdown">
-                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
-                    {% if user.profile.profile_image %}
-                        <img src="{{ user.profile.profile_image.url }}" style="width:35px;height:35px;border-radius:50%;object-fit:cover;">
-                    {% else %}
-                        <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" style="width:35px;height:35px;border-radius:50%;">
-                    {% endif %}
-                </a>
 
-                <ul class="dropdown-menu dropdown-menu-end shadow">
-                    <li><a class="dropdown-item" href="{% url 'profile' %}">👤 Profile</a></li>
-                    <li><a class="dropdown-item" href="{% url 'edit_profile' %}">✏ Edit Profile</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">🚪 Logout</a></li>
-                </ul>
-            </div>
-            {% endif %}
+    <!-- LEFT: LOGO -->
+    <a class="navbar-brand" href="{% url 'home' %}">🏥 Healix HMS</a>
 
-            <button class="navbar-toggler bg-light ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-        </div>
+    <!-- RIGHT SIDE -->
+    <div class="d-flex align-items-center ms-auto">
 
-        <div class="collapse navbar-collapse" id="menu">
-            <ul class="navbar-nav ms-auto">
-                {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">🏠 Home</a>
-                    </li>
+        {% if user.is_authenticated %}
 
-                    <li class="nav-item">
-                        {% if user.profile.role == 'patient' %}
-                            <a class="nav-link" href="{% url 'patient_dashboard' %}">📊 Dashboard</a>
-                        {% elif user.profile.role == 'doctor' %}
-                            <a class="nav-link" href="{% url 'doctor_dashboard' %}">📊 Dashboard</a>
-                        {% elif user.profile.role == 'admin' %}
-                            <a class="nav-link" href="{% url 'admin_dashboard' %}">📊 Dashboard</a>
-                        {% endif %}
-                    </li>
+        <!-- PROFILE DROPDOWN -->
+        <div class="dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center"
+               href="#" data-bs-toggle="dropdown">
 
-                    <li class="nav-item">
-                        {% if user.profile.role == 'patient' %}
-                            <a class="nav-link" href="{% url 'doctor_list' %}">💬 Chat</a>
-                        {% elif user.profile.role == 'doctor' %}
-                            <a class="nav-link" href="{% url 'my_chats' %}">💬 Chat</a>
-                        {% endif %}
-                    </li>
+                {% if user.profile.profile_image %}
+                    <img src="{{ user.profile.profile_image.url }}"
+                         style="width:35px;height:35px;border-radius:50%;">
                 {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'login' %}">Login</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'register' %}">Register</a>
-                    </li>
+                    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                         style="width:35px;height:35px;border-radius:50%;">
                 {% endif %}
+
+            </a>
+
+            <ul class="dropdown-menu dropdown-menu-end shadow">
+                <li>
+                    <a class="dropdown-item" href="{% url 'profile' %}">
+                        👤 Profile
+                    </a>
+                </li>
+
+                <li><hr class="dropdown-divider"></li>
+
+                <li>
+                    <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                        🚪 Logout
+                    </a>
+                </li>
             </ul>
         </div>
+
+        {% endif %}
+
+        <!-- MENU BUTTON -->
+        <button class="navbar-toggler bg-light ms-2" type="button"
+                data-bs-toggle="collapse" data-bs-target="#menu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
     </div>
+
+    <!-- MENU ITEMS -->
+    <div class="collapse navbar-collapse" id="menu">
+        <ul class="navbar-nav ms-auto">
+
+            {% if user.is_authenticated %}
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'home' %}">🏠 Home</a>
+            </li>
+
+            <li class="nav-item">
+                {% if user.profile.role == 'patient' %}
+                    <a class="nav-link" href="{% url 'patient_dashboard' %}">📊 Dashboard</a>
+                {% elif user.profile.role == 'doctor' %}
+                    <a class="nav-link" href="{% url 'doctor_dashboard' %}">📊 Dashboard</a>
+                {% elif user.profile.role == 'admin' %}
+                    <a class="nav-link" href="{% url 'admin_dashboard' %}">📊 Dashboard</a>
+                {% endif %}
+            </li>
+
+            {% else %}
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'login' %}">Login</a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'register' %}">Register</a>
+            </li>
+
+            {% endif %}
+
+        </ul>
+    </div>
+
+</div>
+
+
 </nav>
+
+<!-- MESSAGES -->
 
 <div class="container mt-3">
     {% if messages %}
@@ -132,12 +169,17 @@
     {% endif %}
 </div>
 
+<!-- CONTENT -->
+
 {% block content %}{% endblock %}
+
+<!-- FOOTER -->
 
 <footer>
     © 2026 Healix Hospital Management System
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

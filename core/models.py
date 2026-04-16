@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 
 class Profile(models.Model):
@@ -11,11 +12,11 @@ class Profile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='patient')
-    phone = models.CharField(max_length=20, blank=True, null=True)
-    age = models.PositiveIntegerField(blank=True, null=True)
-    address = models.TextField(blank=True, null=True)
+    phone = models.CharField(max_length=15, blank=True, null=True)
     department = models.CharField(max_length=100, blank=True, null=True)
-    is_approved = models.BooleanField(default=True)
+    is_approved = models.BooleanField(default=False)
+    age = models.IntegerField(null=True, blank=True)
+    address = models.TextField(blank=True, null=True)
     profile_image = models.ImageField(upload_to='profiles/', blank=True, null=True)
 
     def __str__(self):
@@ -27,6 +28,7 @@ class Appointment(models.Model):
         ('pending', 'Pending'),
         ('confirmed', 'Confirmed'),
         ('rejected', 'Rejected'),
+        ('completed', 'Completed'),
     )
 
     patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='patient_appointments')
@@ -35,33 +37,17 @@ class Appointment(models.Model):
     appointment_time = models.TimeField()
     problem = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f"{self.patient.username} -> {self.doctor.username} ({self.status})"
-
-
-class ChatRoom(models.Model):
-    patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='patient_rooms')
-    doctor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='doctor_rooms')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ('patient', 'doctor')
-
-    def __str__(self):
-        return f"Room: {self.patient.username} ↔ {self.doctor.username}"
+        return f"{self.patient.username} - {self.doctor.username} - {self.status}"
 
 
 class ChatMessage(models.Model):
-    room = models.ForeignKey('core.ChatRoom', on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
     message = models.TextField()
-    timestamp = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)
-
-    class Meta:
-        ordering = ['timestamp']
+    sent_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f"{self.sender.username}: {self.message[:30]}"
+        return f"{self.sender.username} -> {self.receiver.username}"

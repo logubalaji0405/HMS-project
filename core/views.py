@@ -1,17 +1,10 @@
-import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-import traceback
 from django.db.models import Count
-from django.http import JsonResponse, HttpResponseForbidden
-from django.views.decorators.http import require_GET, require_POST
-
-from .models import Profile, Appointment, ChatMessage, ChatRoom
-
-logger = logging.getLogger(__name__)
+from .models import Profile, Appointment, ChatMessage
 
 
 def home(request):
@@ -20,7 +13,7 @@ def home(request):
         profile = Profile.objects.filter(user=request.user).first()
         if profile:
             user_role = profile.role
-    return render(request, 'home.html', {'user_role': user_role})
+    return render(request, 'home.html')
 
 
 def register_view(request):
@@ -54,7 +47,9 @@ def register_view(request):
             messages.error(request, "Department is required for doctor registration.")
             return redirect('register')
 
-        approved = False if role == 'doctor' else True
+        approved = True
+        if role == 'doctor':
+            approved = False
 
         user = User.objects.create_user(
             username=username,
@@ -81,6 +76,7 @@ def login_view(request):
     if request.user.is_authenticated:
         try:
             profile = Profile.objects.get(user=request.user)
+
             if profile.role == 'patient':
                 return redirect('patient_dashboard')
             elif profile.role == 'doctor':
@@ -97,7 +93,7 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            profile, _ = Profile.objects.get_or_create(
+            profile, created = Profile.objects.get_or_create(
                 user=user,
                 defaults={
                     'role': 'admin' if user.is_superuser else 'patient',
@@ -110,7 +106,15 @@ def login_view(request):
                 return redirect('login')
 
             login(request, user)
-            return redirect('home')
+
+            if profile.role == 'patient':
+                return redirect('home')
+            elif profile.role == 'doctor':
+                return redirect('home')
+            elif profile.role == 'admin':
+                return redirect('home')
+            else:
+                return redirect('home')
 
         messages.error(request, "Invalid username or password.")
         return redirect('login')
@@ -135,12 +139,13 @@ def patient_dashboard(request):
     upcoming = Appointment.objects.filter(patient=request.user).order_by('appointment_date', 'appointment_time')[:5]
     history = Appointment.objects.filter(patient=request.user).order_by('-created_at')
 
-    return render(request, 'patient_dashboard.html', {
+    context = {
         'total_doctors': total_doctors,
         'my_bookings': my_bookings,
         'upcoming': upcoming,
         'history': history,
-    })
+    }
+    return render(request, 'patient_dashboard.html', context)
 
 
 @login_required
@@ -154,17 +159,18 @@ def doctor_dashboard(request):
     confirmed_bookings = Appointment.objects.filter(doctor=request.user, status='confirmed').count()
     appointments = Appointment.objects.filter(doctor=request.user).order_by('-created_at')
 
-    return render(request, 'doctor_dashboard.html', {
+    context = {
         'total_bookings': total_bookings,
         'pending_bookings': pending_bookings,
         'confirmed_bookings': confirmed_bookings,
         'appointments': appointments,
-    })
+    }
+    return render(request, 'doctor_dashboard.html', context)
 
 
 @login_required
 def admin_dashboard(request):
-    profile, _ = Profile.objects.get_or_create(
+    profile, created = Profile.objects.get_or_create(
         user=request.user,
         defaults={
             'role': 'admin' if request.user.is_superuser else 'patient',
@@ -181,126 +187,148 @@ def admin_dashboard(request):
     total_appointments = Appointment.objects.count()
     daily_stats = Appointment.objects.values('appointment_date').annotate(total=Count('id')).order_by('-appointment_date')[:7]
 
-    return render(request, 'admin_dashboard.html', {
+    context = {
         'pending_doctors': pending_doctors,
         'total_patients': total_patients,
         'total_doctors': total_doctors,
         'total_appointments': total_appointments,
         'daily_stats': daily_stats,
-    })
+    }
+    return render(request, 'admin_dashboard.html', context)
 
 
 @login_required
-def doctor_list(request):
-    doctors = User.objects.filter(profile__role='doctor', profile__is_approved=True)
-    return render(request, 'chat/doctor_list.html', {'doctors': doctors})
+def book_appointment(request):
+    profile = get_object_or_404(Profile, user=request.user)
+    if profile.role != 'patient':
+        return redirect('home')
 
-@login_required
-def start_chat(request, doctor_id):
-    doctor = get_object_or_404(User, id=doctor_id, profile__role='doctor', profile__is_approved=True)
+    doctors = Profile.objects.filter(role='doctor', is_approved=True)
 
-    if request.user.profile.role != 'patient':
-        return HttpResponseForbidden("Only patients can start chat with doctor.")
+    if request.method == 'POST':
+        doctor_id = request.POST.get('doctor')
+        appointment_date = request.POST.get('appointment_date')
+        appointment_time = request.POST.get('appointment_time')
+        problem = request.POST.get('problem')
 
-    room, created = ChatRoom.objects.get_or_create(
-        patient=request.user,
-        doctor=doctor
-    )
-    return redirect('chat_room', room_id=room.id)
+        doctor_user = get_object_or_404(User, id=doctor_id)
 
-
-@login_required
-def my_chats(request):
-    if request.user.profile.role == 'patient':
-        rooms = ChatRoom.objects.filter(patient=request.user).select_related('doctor', 'patient')
-    elif request.user.profile.role == 'doctor':
-        rooms = ChatRoom.objects.filter(doctor=request.user).select_related('doctor', 'patient')
-    else:
-        rooms = ChatRoom.objects.none()
-
-    return render(request, 'chat/my_chats.html', {'rooms': rooms})
-
-
-@login_required
-def chat_room(request, room_id):
-    room = get_object_or_404(ChatRoom.objects.select_related('patient', 'doctor'), id=room_id)
-
-    if request.user != room.patient and request.user != room.doctor:
-        return HttpResponseForbidden("You are not allowed to access this chat.")
-
-    other_user = room.doctor if request.user == room.patient else room.patient
-
-    return render(request, 'chat/chat_room.html', {
-        'room': room,
-        'other_user': other_user,
-    })
-
-
-@login_required
-@require_GET
-def get_messages(request, room_id):
-    try:
-        room = get_object_or_404(ChatRoom, id=room_id)
-
-        if request.user != room.patient and request.user != room.doctor:
-            return JsonResponse({'error': 'Unauthorized'}, status=403)
-
-        messages_qs = ChatMessage.objects.filter(room=room).select_related('sender').order_by('timestamp')
-
-        data = []
-        for msg in messages_qs:
-            data.append({
-                'id': msg.id,
-                'message': msg.message,
-                'sender': msg.sender.username,
-                'sender_id': msg.sender.id,
-                'is_me': msg.sender_id == request.user.id,
-                'timestamp': msg.timestamp.strftime('%d %b %Y, %I:%M %p') if msg.timestamp else '',
-            })
-
-        return JsonResponse({'messages': data})
-
-    except Exception as e:
-        print("GET_MESSAGES ERROR:", str(e))
-        traceback.print_exc()
-        return JsonResponse({
-            'error': str(e)
-        }, status=500)
-
-
-@login_required
-@require_POST
-def send_message(request, room_id):
-    try:
-        room = get_object_or_404(ChatRoom, id=room_id)
-
-        if request.user != room.patient and request.user != room.doctor:
-            return JsonResponse({'error': 'Unauthorized'}, status=403)
-
-        message_text = request.POST.get('message', '').strip()
-
-        if not message_text:
-            return JsonResponse({'error': 'Message cannot be empty'}, status=400)
-
-        msg = ChatMessage.objects.create(
-            room=room,
-            sender=request.user,
-            message=message_text
+        Appointment.objects.create(
+            patient=request.user,
+            doctor=doctor_user,
+            appointment_date=appointment_date,
+            appointment_time=appointment_time,
+            problem=problem,
+            status='pending'
         )
 
-        return JsonResponse({
-            'success': True,
-            'id': msg.id,
-            'message': msg.message,
-            'sender': msg.sender.username,
-            'sender_id': msg.sender.id,
-            'is_me': True,
-            'timestamp': msg.timestamp.strftime('%d %b %Y, %I:%M %p') if msg.timestamp else '',
-        })
+        messages.success(request, "Appointment booked successfully.")
+        return redirect('booking_history')
 
-    except Exception as e:
-        print("SEND_MESSAGE ERROR:", str(e))
-        traceback.print_exc()
-        return JsonResponse({
-            'error': str(e)
-        }, status=500)
+    return render(request, 'booking.html', {'doctors': doctors})
+
+
+@login_required
+def booking_history(request):
+    profile = get_object_or_404(Profile, user=request.user)
+    if profile.role != 'patient':
+        return redirect('home')
+
+    appointments = Appointment.objects.filter(patient=request.user).order_by('-created_at')
+    return render(request, 'booking_history.html', {'appointments': appointments})
+
+
+@login_required
+def confirm_booking(request, appointment_id):
+    profile = get_object_or_404(Profile, user=request.user)
+    if profile.role != 'doctor':
+        return redirect('home')
+
+    appointment = get_object_or_404(Appointment, id=appointment_id, doctor=request.user)
+    appointment.status = 'confirmed'
+    appointment.save()
+    messages.success(request, "Appointment confirmed.")
+    return redirect('doctor_dashboard')
+
+
+@login_required
+def reject_booking(request, appointment_id):
+    profile = get_object_or_404(Profile, user=request.user)
+    if profile.role != 'doctor':
+        return redirect('home')
+
+    appointment = get_object_or_404(Appointment, id=appointment_id, doctor=request.user)
+    appointment.status = 'rejected'
+    appointment.save()
+    messages.success(request, "Appointment rejected.")
+    return redirect('doctor_dashboard')
+
+
+@login_required
+def approve_doctor(request, profile_id):
+    profile = get_object_or_404(Profile, user=request.user)
+    if profile.role != 'admin':
+        return redirect('home')
+
+    doctor_profile = get_object_or_404(Profile, id=profile_id, role='doctor')
+    doctor_profile.is_approved = True
+    doctor_profile.save()
+    messages.success(request, "Doctor approved successfully.")
+    return redirect('admin_dashboard')
+
+
+@login_required
+def chat_view(request, receiver_id):
+    receiver = get_object_or_404(User, id=receiver_id)
+
+    messages_list = ChatMessage.objects.filter(
+        sender__in=[request.user, receiver],
+        receiver__in=[request.user, receiver]
+    ).order_by('sent_at')
+
+    if request.method == 'POST':
+        msg = request.POST.get('message', '').strip()
+        if msg:
+            ChatMessage.objects.create(
+                sender=request.user,
+                receiver=receiver,
+                message=msg
+            )
+            return redirect('chat', receiver_id=receiver.id)
+
+    return render(request, 'chat.html', {
+        'receiver': receiver,
+        'messages_list': messages_list
+    })
+@login_required
+def profile(request):
+    profile = request.user.profile
+
+    context = {
+        'profile': profile,
+        'role': profile.role
+    }
+
+    return render(request, 'profile.html', context)
+
+
+@login_required
+def edit_profile(request):
+    profile = get_object_or_404(Profile, user=request.user)
+
+    if request.method == 'POST':
+        profile.phone = request.POST.get('phone', '')
+        profile.age = request.POST.get('age') or None
+        profile.address = request.POST.get('address', '')
+
+        if profile.role == 'doctor':
+            profile.department = request.POST.get('department', '')
+
+        if request.FILES.get('profile_image'):
+            profile.profile_image = request.FILES.get('profile_image')
+
+        profile.save()
+        messages.success(request, "Profile updated successfully.")
+        return redirect('profile')
+
+    return render(request, 'edit_profile.html', {'profile': profile})

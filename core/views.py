@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+import traceback
 from django.db.models import Count
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_GET, require_POST
@@ -194,7 +195,6 @@ def doctor_list(request):
     doctors = User.objects.filter(profile__role='doctor', profile__is_approved=True)
     return render(request, 'chat/doctor_list.html', {'doctors': doctors})
 
-
 @login_required
 def start_chat(request, doctor_id):
     doctor = get_object_or_404(User, id=doctor_id, profile__role='doctor', profile__is_approved=True)
@@ -202,7 +202,7 @@ def start_chat(request, doctor_id):
     if request.user.profile.role != 'patient':
         return HttpResponseForbidden("Only patients can start chat with doctor.")
 
-    room, _ = ChatRoom.objects.get_or_create(
+    room, created = ChatRoom.objects.get_or_create(
         patient=request.user,
         doctor=doctor
     )
@@ -239,56 +239,68 @@ def chat_room(request, room_id):
 @login_required
 @require_GET
 def get_messages(request, room_id):
-    room = get_object_or_404(ChatRoom, id=room_id)
+    try:
+        room = get_object_or_404(ChatRoom, id=room_id)
 
-    if request.user != room.patient and request.user != room.doctor:
-        return JsonResponse({'error': 'Unauthorized'}, status=403)
+        if request.user != room.patient and request.user != room.doctor:
+            return JsonResponse({'error': 'Unauthorized'}, status=403)
 
-    messages_qs = ChatMessage.objects.filter(room=room).select_related('sender').order_by('timestamp')
-    messages_qs.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
+        messages_qs = ChatMessage.objects.filter(room=room).select_related('sender').order_by('timestamp')
 
-    logger.warning(f"LOAD -> room={room.id}, count={messages_qs.count()}, user={request.user.username}")
+        data = []
+        for msg in messages_qs:
+            data.append({
+                'id': msg.id,
+                'message': msg.message,
+                'sender': msg.sender.username,
+                'sender_id': msg.sender.id,
+                'is_me': msg.sender_id == request.user.id,
+                'timestamp': msg.timestamp.strftime('%d %b %Y, %I:%M %p') if msg.timestamp else '',
+            })
 
-    data = []
-    for msg in messages_qs:
-        data.append({
-            'id': msg.id,
-            'message': msg.message,
-            'sender': msg.sender.username,
-            'sender_id': msg.sender.id,
-            'is_me': msg.sender_id == request.user.id,
-            'timestamp': msg.timestamp.strftime('%d %b %Y, %I:%M %p'),
-        })
+        return JsonResponse({'messages': data})
 
-    return JsonResponse({'messages': data})
+    except Exception as e:
+        print("GET_MESSAGES ERROR:", str(e))
+        traceback.print_exc()
+        return JsonResponse({
+            'error': str(e)
+        }, status=500)
 
 
 @login_required
 @require_POST
 def send_message(request, room_id):
-    room = get_object_or_404(ChatRoom, id=room_id)
+    try:
+        room = get_object_or_404(ChatRoom, id=room_id)
 
-    if request.user != room.patient and request.user != room.doctor:
-        return JsonResponse({'error': 'Unauthorized'}, status=403)
+        if request.user != room.patient and request.user != room.doctor:
+            return JsonResponse({'error': 'Unauthorized'}, status=403)
 
-    message_text = request.POST.get('message', '').strip()
-    if not message_text:
-        return JsonResponse({'error': 'Message cannot be empty'}, status=400)
+        message_text = request.POST.get('message', '').strip()
 
-    msg = ChatMessage.objects.create(
-        room=room,
-        sender=request.user,
-        message=message_text
-    )
+        if not message_text:
+            return JsonResponse({'error': 'Message cannot be empty'}, status=400)
 
-    logger.warning(f"SEND -> room={room.id}, user={request.user.username}, text={message_text}")
+        msg = ChatMessage.objects.create(
+            room=room,
+            sender=request.user,
+            message=message_text
+        )
 
-    return JsonResponse({
-        'success': True,
-        'id': msg.id,
-        'message': msg.message,
-        'sender': msg.sender.username,
-        'sender_id': msg.sender.id,
-        'is_me': True,
-        'timestamp': msg.timestamp.strftime('%d %b %Y, %I:%M %p'),
-    })
+        return JsonResponse({
+            'success': True,
+            'id': msg.id,
+            'message': msg.message,
+            'sender': msg.sender.username,
+            'sender_id': msg.sender.id,
+            'is_me': True,
+            'timestamp': msg.timestamp.strftime('%d %b %Y, %I:%M %p') if msg.timestamp else '',
+        })
+
+    except Exception as e:
+        print("SEND_MESSAGE ERROR:", str(e))
+        traceback.print_exc()
+        return JsonResponse({
+            'error': str(e)
+        }, status=500)

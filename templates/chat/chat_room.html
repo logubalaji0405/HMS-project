@@ -88,7 +88,6 @@ const sendUrl = "{% url 'send_message' room.id %}";
 const chatBox = document.getElementById("chat-box");
 const chatForm = document.getElementById("chat-form");
 const messageInput = document.getElementById("message-input");
-let lastRendered = "";
 
 function scrollToBottom() {
     chatBox.scrollTop = chatBox.scrollHeight;
@@ -101,10 +100,6 @@ function escapeHtml(text) {
 }
 
 function renderMessages(messages) {
-    const snapshot = JSON.stringify(messages);
-    if (snapshot === lastRendered) return;
-    lastRendered = snapshot;
-
     chatBox.innerHTML = "";
 
     messages.forEach(msg => {
@@ -127,14 +122,19 @@ function renderMessages(messages) {
 
 async function loadMessages() {
     try {
-        const response = await fetch(messagesUrl, {
-            method: "GET",
-            headers: { "X-Requested-With": "XMLHttpRequest" }
-        });
+        const response = await fetch(messagesUrl);
         const data = await response.json();
-        if (data.messages) renderMessages(data.messages);
+
+        if (data.error) {
+            console.log("LOAD BACKEND ERROR:", data.error);
+            return;
+        }
+
+        if (data.messages) {
+            renderMessages(data.messages);
+        }
     } catch (error) {
-        console.log("Error loading messages:", error);
+        console.log("Load error:", error);
     }
 }
 
@@ -151,14 +151,19 @@ chatForm.addEventListener("submit", async function(e) {
     try {
         const response = await fetch(sendUrl, {
             method: "POST",
-            body: formData,
-            headers: { "X-Requested-With": "XMLHttpRequest" }
+            body: formData
         });
 
         const data = await response.json();
+
+        if (data.error) {
+            console.log("SEND BACKEND ERROR:", data.error);
+            return;
+        }
+
         if (data.success) {
             messageInput.value = "";
-            await loadMessages();
+            loadMessages();
         }
     } catch (error) {
         console.log("Send error:", error);

@@ -8,12 +8,10 @@ SECRET_KEY = 'django-secret-key'
 DEBUG = True
 ALLOWED_HOSTS = [
     "hms-project-production.up.railway.app",
-    "localhost",
-    "127.0.0.1"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://hms-project-production.up.railway.app"
+    "https://hms-project-production.up.railway.app",
 ]
 
 INSTALLED_APPS = [
